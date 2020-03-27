@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="galleru">
+    {% for link in links %}
+        <iframe src= {{ link }} frameborder="0" scrolling="yes" width="700" height="512"> </iframe>
+    {% endfor %}
+    </div>
+{% endblock %}
