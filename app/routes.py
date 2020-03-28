@@ -1,11 +1,14 @@
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, WikiSeedLinkForm
-from flask import render_template, flash, redirect, url_for
+from flask import render_template, flash, redirect, url_for, make_response, jsonify
 from flask_login import current_user, login_user, login_required, logout_user
 from flask import request
 from werkzeug.urls import url_parse
 from app.models import User
 from app.graph import *
+
+
+USE_IL = True
 
 @app.route('/')
 @app.route('/index')
@@ -82,5 +85,34 @@ def seed():
     related to link
     """
     seed_link = request.args.get('url')
+
+    if USE_IL:
+        print("aroaoasdo")
+        return render_template('display_infinite_scroll.html', url= {'data': seed_link})
+    else:
+        links = make_lst_from_seed(seed_link)
+        return render_template('display_url_lst.html', links=links[:50])#redirect(link)
+
+@app.route('/load') #, methods=['GET'])
+def load():
+    limit = 30
+    seed_link = request.args.get('url')
     links = make_lst_from_seed(seed_link)
-    return render_template('display_url_lst.html', links=links[:50])#redirect(link)
+    print("hello")
+    if USE_IL:
+        counter = int(request.args.get("c"))  # The 'counter' value sent in the QS
+
+        if counter == 0:
+            print(f"Returning posts 0 to {limit}")
+            # Slice 0 -> quantity from the db
+            res = make_response(jsonify(links[0: limit]), 200)
+
+        elif counter == len(links):
+            print("No more posts")
+            res = make_response(jsonify({}), 200)
+
+        else:
+            print(f"Returning posts {counter} to {counter + limit}")
+            # Slice counter -> quantity from the db
+            res = make_response(jsonify(links[counter: counter + limit]), 200)
+        return res
