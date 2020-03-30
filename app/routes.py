@@ -7,8 +7,8 @@ from werkzeug.urls import url_parse
 from app.models import User
 from app.graph import *
 
-
-USE_IL = True
+options_dict = {"use_il": 0, "use_graph": 1}
+opt = options_dict['use_graph']
 
 @app.route('/')
 @app.route('/index')
@@ -86,9 +86,12 @@ def seed():
     """
     seed_link = request.args.get('url')
 
-    if USE_IL:
-        print("aroaoasdo")
+    if opt == 0:
         return render_template('display_infinite_scroll.html', url= {'data': seed_link})
+    elif opt == 1:
+        force_g_data = make_graph_from_seed(seed_link)
+        print(force_g_data)
+        return render_template('display_graph.html', force_g_data=force_g_data)
     else:
         links = make_lst_from_seed(seed_link)
         return render_template('display_url_lst.html', links=links[:50])#redirect(link)
@@ -99,7 +102,7 @@ def load():
     seed_link = request.args.get('url')
     links = make_lst_from_seed(seed_link)
     print("hello")
-    if USE_IL:
+    if opt == 0:
         counter = int(request.args.get("c"))  # The 'counter' value sent in the QS
 
         if counter == 0:
