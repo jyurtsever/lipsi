@@ -3,8 +3,9 @@
   <script src="//unpkg.com/three"></script>
   <script src="//unpkg.com/three-spritetext"></script>
   <script src="//unpkg.com/3d-force-graph"></script>
+  <script src="//unpkg.com/3d-force-graph"></script>
 
-<!--  <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/renderers/CSS3DRenderer.js"></script>-->
+  <script src="https://rawgit.com/mrdoob/three.js/master/examples/js/renderers/CSS3DRenderer.js"></script>
   <!--<script src="../../dist/3d-force-graph.js"></script>-->
 </head>
 
@@ -14,29 +15,29 @@
   <script>
     // import { TrackballControls } from './jsm/controls/TrackballControls.js';
     // import { CSS3DRenderer, CSS3DObject } from './jsm/renderers/CSS3DRenderer.js';
-    //
-    // var Element = function ( id, position, rotation) {
-    //
-	// 			var div = document.createElement( 'div' );
-	// 			div.style.width = '480px';
-	// 			div.style.height = '360px';
-	// 			div.style.backgroundColor = '#000';
-    //
-	// 			var iframe = document.createElement( 'iframe' );
-	// 			iframe.style.width = '480px';
-	// 			iframe.style.height = '360px';
-	// 			iframe.style.border = '0px';
-	// 			iframe.src = id;
-	// 			div.appendChild( iframe );
-    //
-	// 			var object = new THREE.CSS3DObject( div );
-	// 			object.position.set( position.x, position.y, position.z );
-	// 			object.rotation = rotation;
-    //
-	// 			return object;
-    //
-	// 		};
-    //
+
+    var Element = function ( id, position, rotation) {
+
+				var div = document.createElement( 'div' );
+				div.style.width = '480px';
+				div.style.height = '360px';
+				div.style.backgroundColor = '#000';
+
+				var iframe = document.createElement( 'iframe' );
+				iframe.style.width = '480px';
+				iframe.style.height = '360px';
+				iframe.style.border = '0px';
+				iframe.src = id;
+				div.appendChild( iframe );
+
+				var object = new THREE.CSS3DObject( div );
+				// object.position.set( position.x, position.y, position.z );
+				// object.rotation = rotation;
+
+				return object;
+
+			};
+
     // var renderer = new THREE.CSS3DRenderer();
     // renderer.setSize( window.innerWidth, window.innerHeight );
 
@@ -45,23 +46,27 @@
         .graphData(JSON.parse('{{ force_g_data | tojson | safe }}'))
         .nodeLabel('id')
         .nodeAutoColorBy('group')
-        .nodeThreeObjectExtend(node => {
-                 // use a sphere as a drag handle
-          const obj = new THREE.Mesh(
-            new THREE.SphereGeometry(10),
-            new THREE.MeshBasicMaterial({ depthWrite: false, transparent: true, opacity: 0 })
-          );
+        .nodeThreeObject(node => {
+              const obj = new THREE.Mesh(
+                new THREE.SphereGeometry(10),
+                new THREE.MeshBasicMaterial({ depthWrite: false, transparent: true, opacity: 0 })
+              );
 
-          // add text sprite as child
-          const sprite = new SpriteText(node.id);
-          sprite.color = node.color;
-          sprite.textHeight = 8;
-          obj.add(sprite);
-
-          return obj;
+              // add text sprite as child
+              const sprite = new SpriteText(node.title);
+              sprite.color = node.color;
+              sprite.textHeight = 8;
+              obj.add(sprite);
+              return obj})
+        .nodeLabel(node => {
+          var w = 700;
+          var h = 600;
+          var url = node.id;
+          return '<iframe src="' + url + '" width="' + w + '" height="' + h + '">';
         });
 
         // Spread nodes a little wider
         Graph.d3Force('charge').strength(-1000);
+
   </script>
 </body>
