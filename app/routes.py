@@ -89,18 +89,18 @@ def seed():
     if opt == 0:
         return render_template('display_infinite_scroll.html', url= {'data': seed_link})
     elif opt == 1:
-        force_g_data = make_graph_from_seed(seed_link)
-        print(force_g_data)
+        force_g_data = graph_from_seed(seed_link)
+        print("rendering html")
         return render_template('display_graph.html', force_g_data=force_g_data)
     else:
-        links = make_lst_from_seed(seed_link)
+        links = wiki_make_lst_from_seed(seed_link)
         return render_template('display_url_lst.html', links=links[:50])#redirect(link)
 
 @app.route('/load') #, methods=['GET'])
 def load():
     limit = 30
     seed_link = request.args.get('url')
-    links = make_lst_from_seed(seed_link)
+    links = wiki_make_lst_from_seed(seed_link)
     print("hello")
     if opt == 0:
         counter = int(request.args.get("c"))  # The 'counter' value sent in the QS

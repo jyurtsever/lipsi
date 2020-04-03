@@ -49,7 +49,7 @@
         .nodeThreeObject(node => {
               const obj = new THREE.Mesh(
                 new THREE.SphereGeometry(10),
-                new THREE.MeshBasicMaterial({ depthWrite: false, transparent: true, opacity: 0 })
+                new THREE.MeshBasicMaterial({ depthWrite: false, transparent: true, opacity: .1 })
               );
 
               // add text sprite as child
@@ -59,14 +59,14 @@
               obj.add(sprite);
               return obj})
         .nodeLabel(node => {
-          var w = 700;
-          var h = 600;
+          var w = 900;
+          var h = 700;
           var url = node.id;
           return '<iframe src="' + url + '" width="' + w + '" height="' + h + '">';
         });
 
         // Spread nodes a little wider
-        Graph.d3Force('charge').strength(-1000);
+        Graph.d3Force('charge').strength(-600);
 
   </script>
 </body>
