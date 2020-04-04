@@ -2,9 +2,15 @@ import urllib.request
 import re
 import networkx as nx
 import random
+import multiprocessing
+from tqdm import tqdm
+from joblib import Parallel, delayed
 from bs4 import BeautifulSoup
+from itertools import chain, count
 
 random.seed(4)
+NUM_CORES = multiprocessing.cpu_count()
+
 
 def wiki_make_lst_from_seed(link):
     res = set()
@@ -21,6 +27,7 @@ def wiki_make_lst_from_seed(link):
 
 def simple_force_g_format(G, titles):
     res = {}
+    print("node length: ", len(G.nodes))
     nodes = [{"id": node, "group": 1, "val": .5, "title": titles[node]} for node in G.nodes]
     links = [{"source": u, "target": v, "value": .01} for (u, v) in G.edges]
     res["nodes"], res["links"] = nodes, links
@@ -29,8 +36,16 @@ def simple_force_g_format(G, titles):
 
 def force_g_format(G):
     res = {}
-    nodes = [{"id": node.url(), "group": len(node.pages()), "val": .5, "title": node.title()} for node in G.nodes]
-    links = [{"source": u.url(), "target": v.url(), "value": .01} for (u, v) in G.edges]
+    print("started force G formatting")
+    print("node length: ", len(G.nodes))
+    print("edge length: ", len(G.edges))
+
+    convert_node = lambda node: {"id": node.url(), "group": len(node.pages()), "val": .5, "title": node.title()}
+    convert_edge = lambda edge: {"source": edge[0].url(), "target": edge[1].url(), "value": .01}
+
+    # print([dict(chain(G.nodes[n].items(), [(name, n)])) for n in G])
+    nodes = Parallel(n_jobs=NUM_CORES, prefer="threads")(delayed(convert_node)(node) for node in G.nodes)
+    links = Parallel(n_jobs=NUM_CORES, prefer="threads")(delayed(convert_edge)(edge) for edge in G.edges)
     res["nodes"], res["links"] = nodes, links
     return res
 
@@ -49,12 +64,13 @@ def simple_graph_from_seed(seed_link):
 
 
 def graph_from_seed(seed_link):
+    print("sdfjsodfjoisjfoia")
     G = nx.Graph()
 
     seen = set()
     seed_page = Page(seed_link)
     Q = [seed_page]
-    category_lim, count = 50, 0
+    category_lim, count = 100, 0
     while Q and count < category_lim:
         curr = Q.pop()
         print(curr, count)
@@ -67,7 +83,8 @@ def graph_from_seed(seed_link):
             count += 1
         except urllib.error.URLError:
             print(f'Error at {curr.url()}')
-
+    print("finished while loop")
+    print(nx.node_link_data(G))
     return force_g_format(G)
 
 
