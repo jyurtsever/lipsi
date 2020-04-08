@@ -7,9 +7,10 @@ from tqdm import tqdm
 from joblib import Parallel, delayed
 from bs4 import BeautifulSoup
 from itertools import chain, count
+from urllib.parse import unquote
 
 random.seed(4)
-NUM_CORES = multiprocessing.cpu_count()
+NUM_THREADS = multiprocessing.cpu_count()
 
 
 def wiki_make_lst_from_seed(link):
@@ -40,12 +41,12 @@ def force_g_format(G):
     print("node length: ", len(G.nodes))
     print("edge length: ", len(G.edges))
 
-    convert_node = lambda node: {"id": node.url(), "group": len(node.pages()), "val": .5, "title": node.title()}
+    convert_node = lambda node: {"id": node.url(), "group": len(node.pages_), "val": .5, "title": node.title()}
     convert_edge = lambda edge: {"source": edge[0].url(), "target": edge[1].url(), "value": .01}
 
     # print([dict(chain(G.nodes[n].items(), [(name, n)])) for n in G])
-    nodes = Parallel(n_jobs=NUM_CORES, prefer="threads")(delayed(convert_node)(node) for node in G.nodes)
-    links = Parallel(n_jobs=NUM_CORES, prefer="threads")(delayed(convert_edge)(edge) for edge in G.edges)
+    nodes = Parallel(n_jobs=NUM_THREADS, prefer="threads")(delayed(convert_node)(node) for node in G.nodes)
+    links = Parallel(n_jobs=NUM_THREADS, prefer="threads")(delayed(convert_edge)(edge) for edge in G.edges)
     res["nodes"], res["links"] = nodes, links
     return res
 
@@ -64,27 +65,38 @@ def simple_graph_from_seed(seed_link):
 
 
 def graph_from_seed(seed_link):
-    print("sdfjsodfjoisjfoia")
+    print(seed_link)
     G = nx.Graph()
-
     seen = set()
     seed_page = Page(seed_link)
     Q = [seed_page]
-    category_lim, count = 100, 0
-    while Q and count < category_lim:
-        curr = Q.pop()
-        print(curr, count)
+    count, max_count = [0], 30
+    i, cuttoff = 0, 1000
+
+    def explore(node):
         try:
-            for item in curr.items(shuffle=False):
+            if count[0] > max_count:
+                return
+            count[0] += 1
+            if count[0] % 100 == 0:
+                print(node)
+                print(f"Current num pages: {count[0]}")
+            for item in node.items(shuffle=False):
                 if item.url() not in seen:
-                    Q.append(item)
-                    G.add_edge(curr, item)
+                    new_Q.append(item)
+                    G.add_edge(node, item)
                     seen.add(item.url())
-            count += 1
         except urllib.error.URLError:
-            print(f'Error at {curr.url()}')
+            print(f'Error at {node.url()}')
+
+    while count[0] < max_count and i < cuttoff:
+        new_Q = []
+        Parallel(n_jobs=NUM_THREADS, require='sharedmem')(
+            delayed(explore)(node) for node in Q)
+        print(f"Current num pages: {count}")
+        Q = new_Q
+        i += 1
     print("finished while loop")
-    print(nx.node_link_data(G))
     return force_g_format(G)
 
 
@@ -95,6 +107,10 @@ def find_title(url):
     return url[len('http://en.wikipedia.org/wiki/'):]
 
 
+def titlecase(s):
+    return re.sub(r"[A-Za-z]+('[A-Za-z]+)?",
+     lambda mo: mo.group(0)[0].upper() + mo.group(0)[1:].lower(), s)
+
 
 class Page:
     def __init__(self, url):
@@ -102,20 +118,21 @@ class Page:
         self.title_ = None
         self.sub_categories_ = None
         self.sup_categories_ = None
+        self.pages_ = []
         self.home_ = 'http://en.wikipedia.org'
 
     def title(self):
         if not self.title_:
             # webpage = urllib.request.urlopen(url).read()
             # title = str(webpage).split('<title>')[1].split('</title>')[0]
-            self.title_ = self.url_[len('http://en.wikipedia.org/wiki/'):]
+            self.title_ = unquote(self.url_)[len('http://en.wikipedia.org/wiki/'):].replace('_', ' ')
         return self.title_
 
     def url(self):
         return self.url_
 
     def pages(self):
-        return []
+        return self.pages_
 
     def sub_categories(self):
         return []
@@ -143,7 +160,6 @@ class Page:
 class Category(Page):
     def __init__(self, url):
         super().__init__(url)
-        self.pages_ = None
 
     def sub_categories(self):
         if not self.sub_categories_:
