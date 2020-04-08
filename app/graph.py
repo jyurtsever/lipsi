@@ -14,6 +14,10 @@ NUM_THREADS = multiprocessing.cpu_count()
 
 
 def wiki_make_lst_from_seed(link):
+    """
+    :param link: string
+    :return: List of urls to display and titles
+    """
     res = set()
     titles = {}
     with urllib.request.urlopen(link) as resp:
@@ -36,6 +40,10 @@ def simple_force_g_format(G, titles):
 
 
 def force_g_format(G):
+    """
+    :param G: nx Graph of articles to display
+    :return: json format to send to javascript to render the graph u
+    """
     res = {}
     print("started force G formatting")
     print("node length: ", len(G.nodes))
@@ -65,6 +73,10 @@ def simple_graph_from_seed(seed_link):
 
 
 def graph_from_seed(seed_link):
+    """
+    :param seed_link: url to start the graphing proces
+    :return: nx Graph object, the resulting graph of exploration
+    """
     print(seed_link)
     G = nx.Graph()
     seen = set()
@@ -122,6 +134,9 @@ class Page:
         self.home_ = 'http://en.wikipedia.org'
 
     def title(self):
+        """
+        :return: itle as a string
+        """
         if not self.title_:
             # webpage = urllib.request.urlopen(url).read()
             # title = str(webpage).split('<title>')[1].split('</title>')[0]
@@ -129,15 +144,24 @@ class Page:
         return self.title_
 
     def url(self):
+        """
+        :return: url as a string
+        """
         return self.url_
 
     def pages(self):
+
         return self.pages_
 
     def sub_categories(self):
+
         return []
 
     def sup_categories(self):
+        """
+        :return: List of Category objects corresponding to super-categories (i, e the category the object is in
+        """
+
         if not self.sup_categories_:
             self.sup_categories_ = []
             with urllib.request.urlopen(self.url()) as resp:
@@ -158,10 +182,11 @@ class Page:
 
 
 class Category(Page):
-    def __init__(self, url):
-        super().__init__(url)
-
     def sub_categories(self):
+        """
+        :return: List of Category objects corresponding to subcategories
+        """
+
         if not self.sub_categories_:
             self.sub_categories_ = []
             self.sub_categories_ = []
@@ -174,6 +199,9 @@ class Category(Page):
         return self.sub_categories_
 
     def pages(self):
+        """
+        :return: List of page objects corresponding to pages in a category
+        """
         if not self.pages_:
             self.pages_ = []
             with urllib.request.urlopen(self.url()) as resp:
