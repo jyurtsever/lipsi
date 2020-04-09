@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from itertools import chain, count
 from urllib.parse import unquote
 
+
 random.seed(4)
 NUM_THREADS = multiprocessing.cpu_count()
 
@@ -82,7 +83,7 @@ def graph_from_seed(seed_link):
     seen = set()
     seed_page = Page(seed_link)
     Q = [seed_page]
-    count, max_count = [0], 30
+    count, max_count = [0], 50
     i, cuttoff = 0, 1000
 
     def explore(node):
@@ -93,7 +94,7 @@ def graph_from_seed(seed_link):
             if count[0] % 100 == 0:
                 print(node)
                 print(f"Current num pages: {count[0]}")
-            for item in node.items(shuffle=False):
+            for item in node.items(shuffle=True):
                 if item.url() not in seen:
                     new_Q.append(item)
                     G.add_edge(node, item)
@@ -135,7 +136,7 @@ class Page:
 
     def title(self):
         """
-        :return: itle as a string
+        :return: title as a string
         """
         if not self.title_:
             # webpage = urllib.request.urlopen(url).read()
@@ -157,6 +158,11 @@ class Page:
 
         return []
 
+    def is_valid_category(self, s):
+        return (s != '/wiki/Help:Category' and 'Wikipedia' not in s
+               and not bool(re.match(r'.*\d{4}.*', s)))
+
+
     def sup_categories(self):
         """
         :return: List of Category objects corresponding to super-categories (i, e the category the object is in
@@ -169,13 +175,17 @@ class Page:
                 container = soup.find('div', id="mw-normal-catlinks")
                 if container:
                     for atag in container.find_all('a'):
-                        if atag['href'] != '/wiki/Help:Category':
+                        if self.is_valid_category(atag['href']):
                             self.sup_categories_.append(Category(self.home_ + atag['href']))
+                        else:
+                            print(f"Caught: {atag['href']}")
         return self.sup_categories_
 
     def items(self, shuffle=False):
         res = self.sup_categories() + self.pages() + self.sub_categories()
-        return random.shuffle(res) if shuffle else res
+        if shuffle:
+            random.shuffle(res)
+        return res
 
     def __str__(self):
         return f'<<{self.url()}>>'
@@ -195,7 +205,10 @@ class Category(Page):
                 container = soup.find('div', id="mw-subcategories")
                 if container:
                     for atag in container.find_all('a'):
-                        self.sub_categories_.append(Category(self.home_ + atag['href']))
+                        if self.is_valid_category(atag['href']):
+                            self.sub_categories_.append(Category(self.home_ + atag['href']))
+                        else:
+                            print(f"Caught: {atag['href']}")
         return self.sub_categories_
 
     def pages(self):

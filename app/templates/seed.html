@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Custom</h1>
+    <h1>Custom Wikipedia Link</h1>
     <form action="" method="post">
         {{ form.hidden_tag() }}
         <p>
-            {{ form.seed.label }}<br>
+            Paste a wikipedia link into the box below, then click Run! <br> <br>
             {{ form.seed(size=32) }}<br>
             {% for error in form.seed.errors %}
             <span style="color: red;">[{{ error }}]</span>

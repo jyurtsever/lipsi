@@ -1,3 +1,4 @@
+import json
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, WikiSeedLinkForm
 from flask import render_template, flash, redirect, url_for, make_response, jsonify
@@ -89,9 +90,9 @@ def seed():
     if opt == 0:
         return render_template('display_infinite_scroll.html', url= {'data': seed_link})
     elif opt == 1:
-        force_g_data = graph_from_seed(seed_link)
+        force_g_dict = json.dumps(graph_from_seed(seed_link))
         print("rendering html")
-        return render_template('display_graph.html', force_g_data=force_g_data)
+        return render_template('display_graph.html', force_g_data=force_g_dict)
     else:
         links = wiki_make_lst_from_seed(seed_link)
         return render_template('display_url_lst.html', links=links[:50])#redirect(link)

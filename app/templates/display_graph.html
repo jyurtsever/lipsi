@@ -11,13 +11,13 @@
   <div id="3d-graph"></div>
 
   <script>
-    // import { TrackballControls } from './jsm/controls/TrackballControls.js';
-    // import { CSS3DRenderer, CSS3DObject } from './jsm/renderers/CSS3DRenderer.js';
     const elem = document.getElementById('3d-graph');
 
+    var json_data = {{ force_g_data | tojson | safe }};
+    var json_data = JSON.parse(json_data);
     const Graph = ForceGraph3D({controlType: 'fly'})
       (elem)
-        .graphData(JSON.parse('{{ force_g_data | tojson | safe }}'))
+        .graphData(json_data)
         .nodeLabel('id')
         .nodeAutoColorBy('group')
         .nodeThreeObject(node => {
@@ -33,24 +33,35 @@
               obj.add(sprite);
               return obj})
         .nodeLabel(node => {
-          var w = 900;
-          var h = 700;
-          var url = node.id;
-          return '<iframe src="' + url + '" width="' + w + '" height="' + h + '">';
+          return label(node);
         })
         .onNodeClick(node => {
            window.open(
               node.id, "_blank");
-        })
-        // .onNodeDrag(node => {
-        //    window.open(
-        //       node.id, "_blank");
-        // });
+        });
         console.log(Graph.renderer().state);
         // Spread nodes a little wider
         Graph.d3Force('charge').strength(-115);
-        Graph.d3Force('link').distance(300);
-        // THREE.FlyControls(Graph.camera(), elem)
+        Graph.d3Force('link').distance(250);
 
+
+    function label(node) {
+          var w = 900;
+          var h = 700;
+          var url = node.id;
+          return '<iframe style="visibility:hidden;" onload="this.style.visibility = \'visible\';" src="' + url + '" width="' + w + '" height="' + h + '">';
+    }
+
+    escape = function (str) {
+      return str
+          .replace(/[\\]/g, '\\\\')
+          .replace(/[\"]/g, '\\\"')
+          .replace(/[\/]/g, '\\/')
+          .replace(/[\b]/g, '\\b')
+          .replace(/[\f]/g, '\\f')
+          .replace(/[\n]/g, '\\n')
+          .replace(/[\r]/g, '\\r')
+          .replace(/[\t]/g, '\\t');
+    };
   </script>
 </body>
