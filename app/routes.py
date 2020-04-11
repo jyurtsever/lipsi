@@ -74,12 +74,18 @@ def prompt_seed():
     """
     form = WikiSeedLinkForm()
     if form.validate_on_submit():
-        return redirect(url_for('seed', url=form.seed.data))
+        return redirect(url_for('load_graph', url=form.seed.data))
     return render_template('seed.html', title='Seed Link', form=form)
 
 
-@app.route('/seed', methods=['GET'])
-def seed():
+@app.route('/load_graph', methods=['Get'])
+def load_graph():
+    url = request.args.get('url')
+    return render_template('load_graph.html', url=url)
+
+
+@app.route('/make_graph', methods=['GET'])
+def make_graph():
     """
     Todo:
     start graph display of most interesting content
