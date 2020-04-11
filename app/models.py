@@ -32,7 +32,14 @@ class Post(db.Model):
 
 
 class Wiki(db.Model):
-    id = db.Column(db.String, primary_key=True)
+    url_len = 150
+    id = db.Column(db.String(), primary_key=True)
+    children = db.Column(db.JSON)
+    image_urls = db.Column(db.JSON)
+    title = db.Column(db.String())
+
+    def __repr__(self):
+        return '<Wiki {}>'.format(self.id)
 
 
 
