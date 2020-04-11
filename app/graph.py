@@ -86,7 +86,7 @@ def graph_from_seed(seed_link):
     seen = set()
     seed_page = Page(seed_link)
     Q = [seed_page]
-    count, max_count = [0], 40
+    count, max_count = [0], 30
     i, cuttoff = 0, 1000
 
     def explore(node):
@@ -197,6 +197,7 @@ class Page:
 
         query = Wiki.query.filter_by(id=self.url()).first()
         if query:
+            print('using database')
             children_dict = json.loads(query.children)
             self.sup_categories_ = [Category(u) for u in children_dict['sup_cat_links']]
             self.pages_ = [Page(u) for u in children_dict['page_links']]
