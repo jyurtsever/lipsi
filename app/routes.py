@@ -13,7 +13,7 @@ opt = options_dict['use_graph']
 
 @app.route('/')
 @app.route('/index')
-@login_required
+# @login_required
 def index():
     posts = [
         {
@@ -65,7 +65,7 @@ def register():
     return render_template('register.html', title='Register', form=form)
 
 @app.route('/prompt_seed', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def prompt_seed():
     """
     Todo:
