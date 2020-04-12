@@ -87,7 +87,7 @@ def graph_from_seed(seed_link):
     seen = set()
     seed_page = Page(seed_link)
     Q = [seed_page]
-    count, max_count = [0], 60
+    count, max_count = [0], 80
     i, cuttoff = 0, 1000
 
     def explore(node):
