@@ -11,7 +11,8 @@ from app.models import Wiki
 from app import db
 from itertools import chain, count
 from urllib.parse import unquote
-
+from redis import Redis
+import rq
 
 random.seed(4)
 NUM_THREADS = multiprocessing.cpu_count()
@@ -86,7 +87,7 @@ def graph_from_seed(seed_link):
     seen = set()
     seed_page = Page(seed_link)
     Q = [seed_page]
-    count, max_count = [0], 30
+    count, max_count = [0], 60
     i, cuttoff = 0, 1000
 
     def explore(node):
@@ -113,7 +114,7 @@ def graph_from_seed(seed_link):
         Q = new_Q
         i += 1
     print("finished while loop")
-    return force_g_format(G)
+    return json.dumps(force_g_format(G))
 
 
 def find_title(url):

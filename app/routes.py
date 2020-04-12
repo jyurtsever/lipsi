@@ -1,7 +1,7 @@
 import json
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, WikiSeedLinkForm
-from flask import render_template, flash, redirect, url_for, make_response, jsonify
+from flask import render_template, flash, redirect, url_for, make_response, jsonify, current_app
 from flask_login import current_user, login_user, login_required, logout_user
 from flask import request
 from werkzeug.urls import url_parse
@@ -81,8 +81,26 @@ def prompt_seed():
 @app.route('/load_graph', methods=['Get'])
 def load_graph():
     url = request.args.get('url')
-    return render_template('load_graph.html', url=url)
+    queue = current_app.task_queue
+    job = queue.enqueue('app.graph.graph_from_seed', url)
+    return render_template('load_graph.html', url=url, job_id=job.id)
 
+
+@app.route('/job_status')
+def job_status():
+    job_id = request.args.get('job_id')
+    queue = current_app.task_queue#rq.Queue('lipsi-tasks', connection=Redis.from_url('redis://'))
+    job = queue.fetch_job(job_id)
+    if job is None:
+        response = {'status': 'unknown'}
+    else:
+        response = {
+            'status': job.get_status(),
+            # 'result': job.result,
+        }
+        if job.is_failed:
+            response['message'] = job.exc_info.strip().split('\n')[-1]
+    return jsonify(response)
 
 @app.route('/make_graph', methods=['GET'])
 def make_graph():
@@ -96,7 +114,10 @@ def make_graph():
     if opt == 0:
         return render_template('display_infinite_scroll.html', url= {'data': seed_link})
     elif opt == 1:
-        force_g_dict = json.dumps(graph_from_seed(seed_link))
+        job_id = request.args.get('job_id')
+        queue = current_app.task_queue#rq.Queue('lipsi-tasks', connection=Redis.from_url('redis://'))
+        job = queue.fetch_job(job_id)
+        force_g_dict = job.result
         print("rendering html")
         return render_template('display_graph.html', force_g_data=force_g_dict)
     else:

@@ -31,9 +31,35 @@
         <h3>sit tight - this could take a minute</h3>
         <div class="loader"></div>
     </div>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
     <script>
         var url_str = '{{url}}';
-        window.location.replace('/make_graph?url='.concat(url_str));
+        var job_id = '{{job_id}}';
+        var status_url = '/job_status?job_id='.concat(job_id);
+        function check_job_status(status_url) {
+            $.getJSON(status_url, function(data) {
+              console.log(data);
+              switch (data.status) {
+                case "unknown":
+                    console.log("Unknown job id", "danger");
+                    break;
+                case "finished":
+                    console.log("success");
+                    window.location.replace('/make_graph?url='.concat(url_str, '&job_id=', job_id));
+                    break;
+                case "failed":
+                    console.log("Job failed: " + data.message, "danger");
+                    break;
+                default:
+                  setTimeout(function() {
+                    check_job_status(status_url);
+                  }, 500);
+              }
+            });
+          }
+        check_job_status(status_url);
+
     </script>
 </body>
 
