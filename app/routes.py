@@ -92,15 +92,18 @@ def load_graph():
 @app.route('/job_status')
 def job_status():
     job_id = request.args.get('job_id')
-    queue = current_app.task_queue#rq.Queue('lipsi-tasks', connection=Redis.from_url('redis://'))
+    queue = current_app.task_queue
     job = queue.fetch_job(job_id)
     if job is None:
         response = {'status': 'unknown'}
     else:
         job.refresh()
+        progress = 0
+        if 'progress' in job.meta:
+            progress = job.meta['progress']
         response = {
             'status': job.get_status(),
-            'progress': job.meta['progress']
+            'progress': progress
             # 'result': job.result,
         }
         if job.is_failed:
@@ -120,15 +123,14 @@ def make_graph():
         return render_template('display_infinite_scroll.html', url= {'data': seed_link})
     elif opt == 1:
         job_id = request.args.get('job_id')
-        queue = current_app.task_queue#rq.Queue('lipsi-tasks', connection=Redis.from_url('redis://'))
+        queue = current_app.task_queue
         job = queue.fetch_job(job_id)
         force_g_dict = job.result
         print("rendering html")
         return render_template('display_graph.html', force_g_data=force_g_dict)
     else:
         links = wiki_make_lst_from_seed(seed_link)
-        return render_template('display_url_lst.html', links=links[:50])#redirect(link)
-
+        return render_template('display_url_lst.html', links=links[:50])
 @app.route('/load') #, methods=['GET'])
 def load():
     limit = 30

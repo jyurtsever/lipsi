@@ -4,9 +4,6 @@
   <script src="//unpkg.com/three-spritetext"></script>
   <script src="//unpkg.com/3d-force-graph"></script>
   <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-
-
-  <!--<script src="../../dist/3d-force-graph.js"></script>-->
 </head>
 
 <body>
@@ -16,35 +13,65 @@
     const elem = document.getElementById('3d-graph');
 
     var json_data = {{ force_g_data | tojson | safe }};
-    var json_data = JSON.parse(json_data);
+    json_data = JSON.parse(json_data);
+
+
+    let highlightNodes = [];
+    let highlightLink = null;
+
     const Graph = ForceGraph3D({controlType: 'fly'})
       (elem)
         .graphData(json_data)
         .nodeLabel('id')
+        .linkColor(link => link === highlightLink ? 'rgba(254,0,14,1)' : 'rgba(244,255,248,0.55)')
         .nodeAutoColorBy('group')
+        .linkWidth(link => link === highlightLink ? 4 : 1)
+        .linkDirectionalParticles(link => link === highlightLink ? 4 : 0)
+        .linkDirectionalParticleWidth(4)
         .nodeThreeObject(node => {
               const obj = new THREE.Mesh(
                 new THREE.SphereGeometry(15),
                 new THREE.MeshBasicMaterial({ depthWrite: false, transparent: true, opacity: .1 })
               );
-
               // add text sprite as child
               const sprite = new SpriteText(node.title);
-              sprite.color = node.color;
-              sprite.textHeight = 8;
+              sprite.color = 'rgb(191,245,255,.7)';
+              // sprite.textHeight = 8;
               obj.add(sprite);
               return obj})
         .nodeLabel(node => {
           return label(node);
         })
+        .onLinkHover(link => {
+          // no state change
+          if (highlightLink === link) return;
+
+          highlightLink = link;
+          highlightNodes = link ? [link.source, link.target] : [];
+
+          updateHighlight();
+        })
+
+
         .onNodeClick(node => {
            window.open(
               node.id, "_blank");
         });
-        console.log(Graph.renderer().state);
+        // console.log(Graph.renderer().state);
         // Spread nodes a little wider
         Graph.d3Force('charge').strength(-115);
         Graph.d3Force('link').distance(250);
+
+
+        function updateHighlight() {
+          // trigger update of highlighted objects in scene
+          Graph
+            // .nodeColor(Graph.nodeColor())
+            .linkWidth(Graph.linkWidth())
+            .linkDirectionalParticles(Graph.linkDirectionalParticles())
+            .linkColor(Graph.linkColor());
+
+        }
 
 
     function label(node) {
@@ -54,17 +81,5 @@
           return '<iframe style="visibility:hidden;" onload="this.style.visibility = \'visible\';" src="' +
                   url + '" width="' + w + '" height="' + h + '">';
     }
-
-    escape = function (str) {
-      return str
-          .replace(/[\\]/g, '\\\\')
-          .replace(/[\"]/g, '\\\"')
-          .replace(/[\/]/g, '\\/')
-          .replace(/[\b]/g, '\\b')
-          .replace(/[\f]/g, '\\f')
-          .replace(/[\n]/g, '\\n')
-          .replace(/[\r]/g, '\\r')
-          .replace(/[\t]/g, '\\t');
-    };
   </script>
 </body>

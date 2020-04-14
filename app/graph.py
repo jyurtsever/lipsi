@@ -55,7 +55,7 @@ def force_g_format(G):
     print("edge length: ", len(G.edges))
 
     convert_node = lambda node: {"id": node.url(), "group": len(node.pages_), "val": .5, "title": node.title()}
-    convert_edge = lambda edge: {"source": edge[0].url(), "target": edge[1].url(), "value": .01}
+    convert_edge = lambda edge: {"source": edge[0].url(), "target": edge[1].url(), "value": .013}
 
     # print([dict(chain(G.nodes[n].items(), [(name, n)])) for n in G])
     nodes = Parallel(n_jobs=NUM_THREADS, prefer="threads")(delayed(convert_node)(node) for node in G.nodes)
@@ -98,7 +98,7 @@ def graph_from_seed(seed_link):
             if i > max_count:
                 return
 
-            job.meta['progress'] = 94.0 * i / max_count
+            job.meta['progress'] = 95.0 * i / max_count
             job.save_meta()
 
             for item in node.items(shuffle=True):
