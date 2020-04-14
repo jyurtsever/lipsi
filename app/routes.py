@@ -125,6 +125,8 @@ def make_graph():
         job_id = request.args.get('job_id')
         queue = current_app.task_queue
         job = queue.fetch_job(job_id)
+        if not job:
+            return redirect(url_for('load_graph', url=seed_link))
         force_g_dict = job.result
         print("rendering html")
         return render_template('display_graph.html', force_g_data=force_g_dict)
