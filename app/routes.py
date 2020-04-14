@@ -83,6 +83,9 @@ def load_graph():
     url = request.args.get('url')
     queue = current_app.task_queue
     job = queue.enqueue('app.graph.graph_from_seed', url)
+    job.meta['progress'] = 0
+    job.save_meta()
+
     return render_template('load_graph.html', url=url, job_id=job.id)
 
 
@@ -94,8 +97,10 @@ def job_status():
     if job is None:
         response = {'status': 'unknown'}
     else:
+        job.refresh()
         response = {
             'status': job.get_status(),
+            'progress': job.meta['progress']
             # 'result': job.result,
         }
         if job.is_failed:

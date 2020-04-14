@@ -7,14 +7,24 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from logging.handlers import SMTPHandler, RotatingFileHandler
 from redis import Redis
+from flask_assets import Bundle, Environment
+
 import rq
 
 app = Flask(__name__)
+
+
+##Bundle js Assets
+# js = Bundle('loading-bar.js')
+#
+# assets = Environment(app)
+###
 app.config.from_object(Config)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 login = LoginManager(app)
 login.login_view = 'login'
+
 
 
 from app import routes, models

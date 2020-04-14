@@ -12,7 +12,7 @@ from app import db
 from itertools import chain, count
 from urllib.parse import unquote
 from redis import Redis
-import rq
+from rq import get_current_job
 
 random.seed(4)
 NUM_THREADS = multiprocessing.cpu_count()
@@ -87,33 +87,41 @@ def graph_from_seed(seed_link):
     seen = set()
     seed_page = Page(seed_link)
     Q = [seed_page]
-    count, max_count = [0], 80
+    node_count, max_count = [0], 1500
     i, cuttoff = 0, 1000
+
+    job = get_current_job()
 
     def explore(node):
         try:
-            if count[0] > max_count:
+            i = node_count[0]
+            if i > max_count:
                 return
-            count[0] += 1
-            if count[0] % 100 == 0:
-                print(node)
-                print(f"Current num pages: {count[0]}")
+
+            job.meta['progress'] = 97.0 * i / max_count
+            job.save_meta()
+
             for item in node.items(shuffle=True):
                 if item.url() not in seen:
+                    node_count[0] += 1
                     new_Q.append(item)
                     G.add_edge(node, item)
                     seen.add(item.url())
         except urllib.error.URLError:
             print(f'Error at {node.url()}')
 
-    while count[0] < max_count and i < cuttoff:
+    print("ppewias: ", job.meta['progress'])
+
+    while node_count[0] < max_count and i < cuttoff:
         new_Q = []
         Parallel(n_jobs=NUM_THREADS, require='sharedmem')(
             delayed(explore)(node) for node in Q)
-        print(f"Current num pages: {count}")
+        print(f"Current num pages: {node_count}")
         Q = new_Q
         i += 1
     print("finished while loop")
+    job.meta['progress'] = 100
+    job.save_meta()
     return json.dumps(force_g_format(G))
 
 
