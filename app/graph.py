@@ -98,7 +98,7 @@ def graph_from_seed(seed_link):
             if i > max_count:
                 return
 
-            job.meta['progress'] = 97.0 * i / max_count
+            job.meta['progress'] = 94.0 * i / max_count
             job.save_meta()
 
             for item in node.items(shuffle=True):
