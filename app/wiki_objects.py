@@ -49,6 +49,7 @@ class WikiPage(Page):
         self.length_ = None
         self.url_ = self.home_ + self.title_
         self.link_lim = link_lim
+        self.seen_link_lim = link_lim
         self.group_ = 3
 
 
@@ -86,15 +87,16 @@ class WikiPage(Page):
             if shuffle:
                 random.shuffle(titles)
             seen_links, res = [], []
-            num_links = 0
+            num_links, num_seen_links = 0, 0
 
             for t in titles:
-                if t in seen:
+                if t in seen and num_seen_links < self.seen_link_lim:
                     seen_links.append(t)
-                elif self.is_valid(t):
+                    num_seen_links += 1
+                elif self.is_valid(t) and num_links < self.link_lim:
                     res.append(WikiPage(t))
                     num_links += 1
-                if num_links > self.link_lim:
+                if num_links > self.link_lim and num_seen_links > self.seen_link_lim:
                     break
             self.items_ = (res, seen_links)
             self.group_ = len(titles)
@@ -135,7 +137,6 @@ class WikiPage(Page):
 
         response = session.get(url=url, params=params)
         data = response.json()
-        print(data)
         pages = data["query"][target]
         try:
             if prop in ('links', 'images', 'linkshere'):

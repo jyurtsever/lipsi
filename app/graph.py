@@ -49,10 +49,10 @@ def force_g_format(G):
     print("node length: ", len(G.nodes))
     print("edge length: ", len(G.edges))
 
-    convert_node = lambda node: {"group": node.group(), "val": .5, "id": node.title()}
+    convert_node = lambda node: {"group": node.group() % 50, "val": .5, "id": node.title()}
     convert_edge = lambda edge: {"source": edge[0].title(), "target": edge[1].title(), "value": .013}
 
-    # print([dict(chain(G.nodes[n].items(), [(name, n)])) for n in G])
+
     nodes = Parallel(n_jobs=NUM_THREADS, prefer="threads")(delayed(convert_node)(node) for node in G.nodes)
     links = Parallel(n_jobs=NUM_THREADS, prefer="threads")(delayed(convert_edge)(edge) for edge in G.edges)
     res["nodes"], res["links"] = nodes, links
