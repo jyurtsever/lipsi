@@ -33,15 +33,14 @@ class WikiSeedLinkForm(FlaskForm):
     """
     Form for seed link to start the graph
     TODO
-    Validate link and submit form to make relevant wikipedia branches
     """
-    seed = StringField('Wikipedia Seed Link', validators=[DataRequired(), URL()])
+    seed = StringField('Wikipedia Seed Link', validators=[DataRequired()])
     submit = SubmitField('Run!')
 
-    def validate_seed(self, seed):
-        parse = urlparse(seed.data)
-        if not (parse.scheme or parse.netloc):
-            raise ValidationError('Please insert a valid link')
+    # def validate_seed(self, seed):
+    #     parse = urlparse(seed.data)
+    #     if not (parse.scheme or parse.netloc):
+    #         raise ValidationError('Please insert a valid link')
 
 
 

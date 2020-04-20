@@ -133,6 +133,7 @@ def make_graph():
     else:
         links = wiki_make_lst_from_seed(seed_link)
         return render_template('display_url_lst.html', links=links[:50])
+
 @app.route('/load') #, methods=['GET'])
 def load():
     limit = 30

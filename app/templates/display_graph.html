@@ -14,7 +14,7 @@
 
     var json_data = {{ force_g_data | tojson | safe }};
     json_data = JSON.parse(json_data);
-
+    const home_url = 'https://en.wikipedia.org/wiki/';
 
     let highlightNodes = [];
     let highlightLink = null;
@@ -23,9 +23,9 @@
       (elem)
         .graphData(json_data)
         .nodeLabel('id')
-        .linkColor(link => link === highlightLink ? 'rgba(254,0,14,1)' : 'rgba(244,255,248,0.55)')
+        .linkColor(link => link === highlightLink ? 'rgba(254,0,14,1)' : 'rgba(244,255,248,0.3)')
         .nodeAutoColorBy('group')
-        .linkWidth(link => link === highlightLink ? 4 : 1)
+        .linkWidth(link => link === highlightLink ? 4 : .3)
         .linkDirectionalParticles(link => link === highlightLink ? 4 : 0)
         .linkDirectionalParticleWidth(4)
         .nodeThreeObject(node => {
@@ -34,7 +34,7 @@
                 new THREE.MeshBasicMaterial({ depthWrite: false, transparent: true, opacity: .1 })
               );
               // add text sprite as child
-              const sprite = new SpriteText(node.title);
+              const sprite = new SpriteText(node.id);
               sprite.color = node.color;
               // sprite.textHeight = 8;
               obj.add(sprite);
@@ -55,12 +55,12 @@
 
         .onNodeClick(node => {
            window.open(
-              node.id, "_blank");
+              home_url + node.id, "_blank");
         });
         // console.log(Graph.renderer().state);
         // Spread nodes a little wider
-        Graph.d3Force('charge').strength(-115);
-        Graph.d3Force('link').distance(250);
+        Graph.d3Force('charge').strength(-250);
+        Graph.d3Force('link').distance(500);
 
 
         function updateHighlight() {
@@ -77,7 +77,7 @@
     function label(node) {
           var w = 900;
           var h = 700;
-          var url = node.id;
+          var url = home_url + node.id;
           return '<iframe style="visibility:hidden;" onload="this.style.visibility = \'visible\';" src="' +
                   url + '" width="' + w + '" height="' + h + '">';
     }
