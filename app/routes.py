@@ -1,12 +1,13 @@
 import json
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, WikiSeedLinkForm
-from flask import render_template, flash, redirect, url_for, make_response, jsonify, current_app
+from flask import render_template, flash, redirect, url_for, make_response, jsonify, current_app, Response
 from flask_login import current_user, login_user, login_required, logout_user
 from flask import request
 from werkzeug.urls import url_parse
 from app.models import User
 from app.graph import *
+from app.wiki_objects import WikiPage
 
 options_dict = {"use_il": 0, "use_graph": 1}
 opt = options_dict['use_graph']
@@ -15,17 +16,7 @@ opt = options_dict['use_graph']
 @app.route('/index')
 # @login_required
 def index():
-    posts = [
-        {
-            'author': {'username': 'John'},
-            'body': 'Beautiful day in Portland!'
-        },
-        {
-            'author': {'username': 'Susan'},
-            'body': 'The Avengers movie was so cool!'
-        }
-    ]
-    return render_template('index.html', title='Home', posts=posts)
+    return redirect(url_for('prompt_seed'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -77,6 +68,11 @@ def prompt_seed():
         return redirect(url_for('load_graph', url=form.seed.data))
     return render_template('seed.html', title='Seed Link', form=form)
 
+@app.route('/autocomplete',methods=['GET'])
+def autocomplete():
+    semi_title = request.args.get('term')
+    titles = WikiPage.prefix_search(semi_title)
+    return Response(json.dumps(titles), mimetype='application/json')
 
 @app.route('/load_graph', methods=['Get'])
 def load_graph():

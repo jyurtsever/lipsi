@@ -51,6 +51,7 @@ class WikiPage(Page):
         self.link_lim = link_lim
         self.seen_link_lim = link_lim
         self.group_ = 3
+        self.color_ = None
 
 
     def title(self):
@@ -60,7 +61,7 @@ class WikiPage(Page):
         return self.url_
 
     def is_valid(self, title):
-        return ':' not in title
+        return ':' not in title and "(identifier)" not in title and "library" not in title
 
     def __len__(self):
         if not self.length_:
@@ -105,10 +106,28 @@ class WikiPage(Page):
     def group(self):
         return self.group_
 
+    def color(self):
+        if not self.color_:
+            light_blue = self.rgb_to_hex((142, 248, 255))
+            light_turq = self.rgb_to_hex((0, 230, 255))
+            yellow = self.rgb_to_hex((240, 230, 0))
+            violet = self.rgb_to_hex((255, 0, 255))
+
+            self.color_ = light_turq if self.group() < 19 else yellow
+        return self.color_
+
+    @staticmethod
+    def rgb_to_hex(rgb):
+        return '#%02x%02x%02x' % rgb
+
     @staticmethod
     def prefix_search(semi_title):
-        query = WikiPage.query_api('prefixsearch', semi_title,
-                                   query_param='list', target='prefixsearch', title_key='pssearch')
+        print(semi_title)
+        try:
+            query = WikiPage.query_api('prefixsearch', semi_title,
+                                       query_param='list', target='prefixsearch', title_key='pssearch')
+        except KeyError: #no results yet
+            return []
         return [q['title'] for q in query]
 
     @staticmethod

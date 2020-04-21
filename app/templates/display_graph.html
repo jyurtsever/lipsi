@@ -24,8 +24,7 @@
         .graphData(json_data)
         .nodeLabel('id')
         .linkColor(link => link === highlightLink ? 'rgba(254,0,14,1)' : 'rgba(244,255,248,0.3)')
-        .nodeAutoColorBy('group')
-        .linkWidth(link => link === highlightLink ? 4 : .3)
+        .linkWidth(link => link === highlightLink ? 4 : .42)
         .linkDirectionalParticles(link => link === highlightLink ? 4 : 0)
         .linkDirectionalParticleWidth(4)
         .nodeThreeObject(node => {

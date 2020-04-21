@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, URL
 from app.models import User
 from urllib.parse import urlparse
@@ -34,7 +34,7 @@ class WikiSeedLinkForm(FlaskForm):
     Form for seed link to start the graph
     TODO
     """
-    seed = StringField('Wikipedia Seed Link', validators=[DataRequired()])
+    seed = StringField('Wikipedia Seed Link', id='seed', validators=[DataRequired()])
     submit = SubmitField('Run!')
 
     # def validate_seed(self, seed):

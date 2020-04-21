@@ -1,16 +1,71 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block content %}
-    <h1>Custom Wikipedia Link</h1>
-    <form action="" method="post">
-        {{ form.hidden_tag() }}
-        <p>
-            Paste a wikipedia link into the box below, then click Run! <br> <br>
-            {{ form.seed(size=32) }}<br>
-            {% for error in form.seed.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p> {{ form.submit() }}</p>
-    </form>
-{% endblock %}
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+        <!-- Animate CSS -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.0/animate.min.css">
+
+        <link   rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+        <script type="text/javascript" src="https://code.jquery.com/jquery-latest.js"></script>
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
+
+    </head>
+    <body>
+        <div>
+            <a href="{{ url_for('index') }}">Home</a>
+            {% if current_user.is_anonymous  %}
+            <a href= "{{ url_for('login') }}">Login</a>
+            {% else %}
+            <a href="{{ url_for('logout') }}">Logout</a>
+            {% endif %}
+        </div>
+        <div align="center">
+            <h1>Graph Surfing</h1>
+            <form action="" method="post">
+                {{ form.hidden_tag() }}
+                <br>
+                <p>
+                    Search for a wikipedia article in the box below, then click Run! <br>
+                    <div class="ui-widget">
+<!--                        <label for="seed"> </label>-->
+                        {{ form.seed(size=32) }} {{ form.submit() }} <br>
+                        {% for error in form.seed.errors %}
+                        <span style="color: red;">[{{ error }}]</span>
+                        {% endfor %}
+                    </div>
+                </p>
+            </form>
+        </div>
+        <script>
+            $(function() {
+                var cache = {};
+                $('#seed').autocomplete({
+                    minLength: 2,
+                    source: function( request, response ) {
+                    var term = request.term;
+                    if ( term in cache ) {
+                      response( cache[ term ] );
+                      return;
+                    }
+
+                    $.getJSON('{{ url_for("autocomplete") }}', request, function( data, status, xhr ) {
+                      cache[ term ] = data;
+                      response( data );
+                    });
+                  }
+                });
+            });
+        </script>
+    </body>
+<!--                $.ajax({-->
+<!--                    url: '{{ url_for("autocomplete") }}'-->
+<!--                }).done(function (data) {-->
+<!--                    console.log(data);-->
+
+
