@@ -12,13 +12,16 @@
   <script>
     const elem = document.getElementById('3d-graph');
 
+    //Graph data generated in python
     var json_data = {{ force_g_data | tojson | safe }};
     json_data = JSON.parse(json_data);
+
     const home_url = 'https://en.wikipedia.org/wiki/';
 
     let highlightNodes = [];
     let highlightLink = null;
 
+    const im_url_prefix = 'https://commons.wikimedia.org/wiki/Special:FilePath/';
     const Graph = ForceGraph3D({controlType: 'fly'})
       (elem)
         .graphData(json_data)
@@ -27,16 +30,27 @@
         .linkWidth(link => link === highlightLink ? 4 : .42)
         .linkDirectionalParticles(link => link === highlightLink ? 4 : 0)
         .linkDirectionalParticleWidth(4)
+        .nodeThreeObjectExtend(true)
         .nodeThreeObject(node => {
-              const obj = new THREE.Mesh(
-                new THREE.SphereGeometry(15),
-                new THREE.MeshBasicMaterial({ depthWrite: false, transparent: true, opacity: .1 })
-              );
+              // const obj = new THREE.Mesh(
+              //   new THREE.SphereGeometry(5),
+              //   new THREE.MeshBasicMaterial({ depthWrite: false, transparent: true, opacity: .6, color: node.color, size:node.val})
+              // );
+              const obj = new THREE.Mesh();
               // add text sprite as child
-              const sprite = new SpriteText(node.id);
+              var sprite = new SpriteText(node.id);
               sprite.color = node.color;
-              // sprite.textHeight = 8;
+              sprite.center.set(.5, -.8);
               obj.add(sprite);
+              if (node.images) {
+                const imgTexture = new THREE.TextureLoader().load(node.images[0]);
+                const material = new THREE.SpriteMaterial({map: imgTexture});
+                sprite = new THREE.Sprite(material);
+                // var new_w = 30/sprite.scale.y * sprite.scale.x;
+                sprite.scale.set(30, 30);
+                sprite.center.set(.5, 1.3);
+                obj.add(sprite);
+              }
               return obj})
         .nodeLabel(node => {
           return label(node);
@@ -44,7 +58,6 @@
         .onLinkHover(link => {
           // no state change
           if (highlightLink === link) return;
-
           highlightLink = link;
           highlightNodes = link ? [link.source, link.target] : [];
 
@@ -56,21 +69,50 @@
            window.open(
               home_url + node.id, "_blank");
         });
-        // console.log(Graph.renderer().state);
-        // Spread nodes a little wider
-        Graph.d3Force('charge').strength(-230);
-        Graph.d3Force('link').distance(500);
+
+    // Spread nodes a little wider
+    Graph.d3Force('charge').strength(-230);
+    Graph.d3Force('link').distance(500);
+    // add_images();
+    // setInterval(() => {
+    //   Graph.nodeThreeObjectExtend(true);
+    //   Graph.nodeThreeObject(node => {
+    //     // const obj = new THREE.Mesh(
+    //     //   new THREE.SphereGeometry(5),
+    //     //   new THREE.MeshBasicMaterial({ depthWrite: false, transparent: true, opacity: .6, color: node.color, size:node.val})
+    //     // );
+    //     // // add text sprite as child
+    //     var pos = Graph.cameraPosition();
+    //     var dist = (pos.x - node.x)*(pos.x - node.x) + (pos.y - node.y)*(pos.y - node.y) + (pos.z - node.z)*(pos.z - node.z);
+    //     if (dist < 2000000) {
+    //       // add image sprite as child
+    //       const obj = new THREE.Mesh();
+    //       var sprite = new SpriteText(node.id);
+    //       sprite.color = node.color;
+    //       sprite.center.set(.5, -.8);
+    //       obj.add(sprite);
+    //       const imgTexture = new THREE.TextureLoader().load(im_url);
+    //       const material = new THREE.SpriteMaterial({map: imgTexture});
+    //       sprite = new THREE.Sprite(material);
+    //       // var new_w = 30/sprite.scale.y * sprite.scale.x;
+    //       sprite.scale.set(30, 30);
+    //       sprite.center.set(.5, 1.3);
+    //       obj.add(sprite);
+    //       return obj;
+    //     }
+    //   });
+    // }, 1000);
 
 
-        function updateHighlight() {
-          // trigger update of highlighted objects in scene
-          Graph
-            // .nodeColor(Graph.nodeColor())
-            .linkWidth(Graph.linkWidth())
-            .linkDirectionalParticles(Graph.linkDirectionalParticles())
-            .linkColor(Graph.linkColor());
+    function updateHighlight() {
+      // trigger update of highlighted objects in scene
+      Graph
+        // .nodeColor(Graph.nodeColor())
+        .linkWidth(Graph.linkWidth())
+        .linkDirectionalParticles(Graph.linkDirectionalParticles())
+        .linkColor(Graph.linkColor());
 
-        }
+    }
 
 
     function label(node) {

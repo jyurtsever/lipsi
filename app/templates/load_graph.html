@@ -65,7 +65,9 @@
                     break;
                 case "finished":
                     console.log("success");
-                    window.location.replace('/make_graph?url='.concat(url_str, '&job_id=', job_id));
+                    var new_url = '/make_graph?url='.concat(url_str, '&job_id=', job_id);
+                    console.log(new_url);
+                    window.location.replace(encodeURI(new_url));
                     break;
                 case "failed":
                     console.log("Job failed: " + data.message, "danger");

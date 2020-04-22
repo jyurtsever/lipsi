@@ -49,7 +49,7 @@ def force_g_format(G):
     print("node length: ", len(G.nodes))
     print("edge length: ", len(G.edges))
 
-    convert_node = lambda node: {"color": node.color(), "val": .5, "id": node.title()}
+    convert_node = lambda node: {"color": node.color(), "val": .5, "id": node.title(), "images": node.images_}
     convert_edge = lambda edge: {"source": edge[0].title(), "target": edge[1].title(), "value": .013}
 
 
@@ -124,6 +124,7 @@ def graph_from_seed(seed_link):
     if job:
         job.meta['progress'] = 100
         job.save_meta()
+
     return json.dumps(force_g_format(G))
 
 

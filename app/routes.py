@@ -1,4 +1,5 @@
 import json
+import urllib.parse
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, WikiSeedLinkForm
 from flask import render_template, flash, redirect, url_for, make_response, jsonify, current_app, Response
@@ -65,7 +66,7 @@ def prompt_seed():
     """
     form = WikiSeedLinkForm()
     if form.validate_on_submit():
-        return redirect(url_for('load_graph', url=form.seed.data))
+        return redirect(url_for('load_graph', url=urllib.parse.quote(form.seed.data)))
     return render_template('seed.html', title='Seed Link', form=form)
 
 @app.route('/autocomplete',methods=['GET'])
@@ -76,17 +77,23 @@ def autocomplete():
 
 @app.route('/load_graph', methods=['Get'])
 def load_graph():
-    url = request.args.get('url')
+    """
+    Starts job for generating graph
+    :return: Loading screen for generating graph
+    """
+    url = urllib.parse.unquote(request.args.get('url'))
     queue = current_app.task_queue
     job = queue.enqueue('app.graph.graph_from_seed', url)
     job.meta['progress'] = 0
     job.save_meta()
-
-    return render_template('load_graph.html', url=url, job_id=job.id)
+    return render_template('load_graph.html', url=urllib.parse.quote(url), job_id=job.id)
 
 
 @app.route('/job_status')
 def job_status():
+    """
+    :return: JSon of job status and progress given url
+    """
     job_id = request.args.get('job_id')
     queue = current_app.task_queue
     job = queue.fetch_job(job_id)
@@ -113,12 +120,14 @@ def make_graph():
     start graph display of most interesting content
     related to link
     """
-    seed_link = request.args.get('url')
-
+    seed_link = urllib.parse.unquote(request.args.get('url'))
+    print("seed link: ", seed_link)
     if opt == 0:
         return render_template('display_infinite_scroll.html', url= {'data': seed_link})
     elif opt == 1:
+
         job_id = request.args.get('job_id')
+        print("job_id", job_id)
         queue = current_app.task_queue
         job = queue.fetch_job(job_id)
         if not job:

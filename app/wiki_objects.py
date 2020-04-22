@@ -10,7 +10,7 @@ from app import db
 from urllib.parse import unquote
 
 
-random.seed(4)
+random.seed(5)
 
 class Page:
     def title(self):
@@ -43,7 +43,7 @@ class WikiPage(Page):
     def __init__(self, title, link_lim=15):
         self.title_ = title
         self.items_ = []
-        self.images_ = None
+        self.images_ = []
         self.summary_ = None
         self.home_ = "https://en.wikipedia.org/wiki/"
         self.length_ = None
@@ -61,7 +61,8 @@ class WikiPage(Page):
         return self.url_
 
     def is_valid(self, title):
-        return ':' not in title and "(identifier)" not in title and "library" not in title
+        return ':' not in title and "identifier" not in title and "Library" not in title and \
+                "ISO" not in title and "File" not in title and "Identifier" not in title
 
     def __len__(self):
         if not self.length_:
@@ -70,11 +71,13 @@ class WikiPage(Page):
 
     def images(self):
         if not self.images_:
-            self.images_ = self.query_api('images', self.title())
-        return self.images_
+            self.images_ = self.query_api('imageinfo', self.title())
+            # if self.images_:
+            #     random.shuffle(self.images_)
+        return [self.images_[0]] if self.images_ else []
 
 
-    def items(self, shuffle=False, seen=None):
+    def items(self, shuffle=False, seen={}):
         """
         :param shuffle: whether to shuffle the result or not
         :param seen: the seen titles of the graph
@@ -89,7 +92,6 @@ class WikiPage(Page):
                 random.shuffle(titles)
             seen_links, res = [], []
             num_links, num_seen_links = 0, 0
-
             for t in titles:
                 if t in seen and num_seen_links < self.seen_link_lim:
                     seen_links.append(t)
@@ -100,6 +102,7 @@ class WikiPage(Page):
                 if num_links > self.link_lim and num_seen_links > self.seen_link_lim:
                     break
             self.items_ = (res, seen_links)
+            self.images()
             self.group_ = len(titles)
         return self.items_
 
@@ -150,14 +153,17 @@ class WikiPage(Page):
             query_param: prop,
         }
 
-        if prop in ('images', 'links', 'linkshere'):
+        if prop in ('links', 'linkshere'):
             params[lim_keys[prop]] = 'max'
 
+        if prop == 'imageinfo':
+            params['iiprop'] = 'url'
+            params['generator'] = 'images'
 
-        response = session.get(url=url, params=params)
-        data = response.json()
-        pages = data["query"][target]
         try:
+            response = session.get(url=url, params=params)
+            data = response.json()
+            pages = data["query"][target]
             if prop in ('links', 'images', 'linkshere'):
                 pg_count = 1
                 titles = []
@@ -180,6 +186,13 @@ class WikiPage(Page):
 
                 # print("%d titles found." % len(titles))
                 return titles
+
+            elif prop == 'imageinfo':
+                res = []
+                for key, val in pages.items():
+                    if '.jpg' in val['title'] or '.png' in val['title']:
+                        res.append(val['imageinfo'][0]['url'])
+                return res
 
             elif prop == 'info':
                 k = list(pages.keys())[0]
