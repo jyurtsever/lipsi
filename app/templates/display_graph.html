@@ -42,13 +42,14 @@
               sprite.color = node.color;
               sprite.center.set(.5, -.8);
               obj.add(sprite);
-              if (node.images) {
-                const imgTexture = new THREE.TextureLoader().load(node.images[0]);
+              if (node.pageimage) {
+                const imgTexture = new THREE.TextureLoader().load(node.pageimage.source);
                 const material = new THREE.SpriteMaterial({map: imgTexture});
                 sprite = new THREE.Sprite(material);
-                // var new_w = 30/sprite.scale.y * sprite.scale.x;
-                sprite.scale.set(30, 30);
-                sprite.center.set(.5, 1.3);
+                var new_h = 40;
+                var new_w = node.pageimage.width/node.pageimage.height * new_h;
+                sprite.scale.set(new_w, new_h);
+                sprite.center.set(.5, 1.2);
                 obj.add(sprite);
               }
               return obj})

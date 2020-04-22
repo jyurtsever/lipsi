@@ -51,6 +51,7 @@ class WikiPage(Page):
         self.link_lim = link_lim
         self.seen_link_lim = link_lim
         self.group_ = 3
+        self.pageimage_ = {}
         self.color_ = None
 
 
@@ -69,6 +70,9 @@ class WikiPage(Page):
             self.length_ = self.query_api('info', self.title())["length"]
         return self.length_
 
+    def pageimage(self):
+        return self.pageimage_ if self.pageimage_ else {}
+
     def images(self):
         if not self.images_:
             self.images_ = self.query_api('imageinfo', self.title())
@@ -84,7 +88,7 @@ class WikiPage(Page):
         :return:
         """
         if not self.items_:
-            titles = self.query_api('links', self.title())
+            titles, self.pageimage_ = self.query_api('pageimages|links', self.title())
             if not titles:
                 return [], []
 
@@ -102,7 +106,6 @@ class WikiPage(Page):
                 if num_links > self.link_lim and num_seen_links > self.seen_link_lim:
                     break
             self.items_ = (res, seen_links)
-            self.images()
             self.group_ = len(titles)
         return self.items_
 
@@ -143,8 +146,8 @@ class WikiPage(Page):
         session = requests.Session()
         url = "https://en.wikipedia.org/w/api.php"
 
-        continue_keys = {"images": "imcontinue", "links": "plcontinue", "linkshere": "lhcontinue"}
-        lim_keys = {"images": "imlimit", "links": "pllimit", "linkshere": "lhlimit"}
+        continue_keys = {"images": "imcontinue", "links": "plcontinue", "pageimages|links": "plcontinue", "linkshere": "lhcontinue"}
+        lim_keys = {"images": "imlimit", "links": "pllimit",  "pageimages|links": "pllimit", "linkshere": "lhlimit"}
 
         params = {
             "action": "query",
@@ -153,39 +156,43 @@ class WikiPage(Page):
             query_param: prop,
         }
 
-        if prop in ('links', 'linkshere'):
+        if prop in ('links', 'linkshere', 'pageimages|links'):
             params[lim_keys[prop]] = 'max'
 
         if prop == 'imageinfo':
             params['iiprop'] = 'url'
-            params['generator'] = 'images'
+            if "File:" not in title:
+                params['generator'] = 'images'
+
+        if prop == 'pageimages|links':
+            params['piprop'] = 'original'
 
         try:
             response = session.get(url=url, params=params)
             data = response.json()
             pages = data["query"][target]
-            if prop in ('links', 'images', 'linkshere'):
+            if prop in ('links', 'images', 'linkshere', "pageimages|links"):
                 pg_count = 1
-                titles = []
+                titles, pageimage = [], None
+                prop1 = 'links' if prop == "pageimages|links" else prop
                 while pg_count < 5:
                     # print("\nPage %d" % pg_count)
                     for key, val in pages.items():
-                        for link in val[prop]:
+                        pageimage = val['original'] if 'original' in val else None
+                        for link in val[prop1]:
                             titles.append(link["title"])
 
                     if "continue" not in data:
                         break
 
-                    continue_key = continue_keys[prop]
+                    continue_key = continue_keys[prop1]
                     continue_val = data["continue"][continue_key]
                     params[continue_key] = continue_val
                     response = session.get(url=url, params=params)
                     data = response.json()
                     pages = data["query"][target]
                     pg_count += 1
-
-                # print("%d titles found." % len(titles))
-                return titles
+                return (titles, pageimage) if prop == 'pageimages|links' else titles
 
             elif prop == 'imageinfo':
                 res = []
@@ -205,6 +212,7 @@ class WikiPage(Page):
         except KeyError as kE:
             print(f'Unable to find property "{kE}" for page titled "{title}"')
             print(data)
+            return [], {}
 
 
 
