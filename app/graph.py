@@ -82,7 +82,7 @@ def graph_from_seed(seed_link):
     seen = {}
     seed_page = WikiPage(seed_link)
     Q = [seed_page]
-    node_count, max_count = [0], 1500
+    node_count, max_count = [0], 1000
     i, cuttoff = 0, 1000
 
     job = get_current_job()

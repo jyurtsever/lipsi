@@ -71,7 +71,7 @@ class WikiPage(Page):
         return self.length_
 
     def pageimage(self):
-        return self.pageimage_ if self.pageimage_ else {}
+        return self.pageimage_ if self.pageimage_ and 'en.wikipedia' not in self.pageimage_['source'] else {}
 
     def images(self):
         if not self.images_:
@@ -91,7 +91,7 @@ class WikiPage(Page):
             titles, self.pageimage_ = self.query_api('pageimages|links', self.title())
             if not titles:
                 return [], []
-
+            print(self.pageimage_)
             if shuffle:
                 random.shuffle(titles)
             seen_links, res = [], []
@@ -178,7 +178,8 @@ class WikiPage(Page):
                 while pg_count < 5:
                     # print("\nPage %d" % pg_count)
                     for key, val in pages.items():
-                        pageimage = val['original'] if 'original' in val else None
+                        if not pageimage:
+                            pageimage = val['original'] if 'original' in val else None
                         for link in val[prop1]:
                             titles.append(link["title"])
 

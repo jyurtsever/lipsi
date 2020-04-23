@@ -42,12 +42,12 @@
               sprite.color = node.color;
               sprite.center.set(.5, -.8);
               obj.add(sprite);
-              if (node.pageimage) {
+              if (node.pageimage.source) {
                 const imgTexture = new THREE.TextureLoader().load(node.pageimage.source);
                 const material = new THREE.SpriteMaterial({map: imgTexture});
                 sprite = new THREE.Sprite(material);
                 var new_h = 40;
-                var new_w = node.pageimage.width/node.pageimage.height * new_h;
+                var new_w = node.pageimage.width / node.pageimage.height * new_h;
                 sprite.scale.set(new_w, new_h);
                 sprite.center.set(.5, 1.2);
                 obj.add(sprite);
@@ -103,7 +103,6 @@
     //     }
     //   });
     // }, 1000);
-
 
     function updateHighlight() {
       // trigger update of highlighted objects in scene
