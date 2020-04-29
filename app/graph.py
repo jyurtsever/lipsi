@@ -92,7 +92,7 @@ def graph_from_seed(seed_link):
     # Hard coded thresholds and cutoffs
     node_count, max_count = [0], 900
     i, cuttoff = 0, 1000
-    seen_to_num_nodes_thresh = 0
+    seen_to_num_nodes_thresh = 0.05
     max_links, max_seen_links = 15, 20
     time_cutoff = 60*1e3 #one minute
 
