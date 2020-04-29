@@ -49,8 +49,8 @@ def force_g_format(G):
     print("node length: ", len(G.nodes))
     print("edge length: ", len(G.edges))
 
-    convert_node = lambda node: {"color": node.color(), "val": .5, "id": node.title(), "pageimage": node.pageimage()}
-    convert_edge = lambda edge: {"source": edge[0].title(), "target": edge[1].title(), "value": .013}
+    convert_node = lambda node: {"color": node.color(), "val": .5, "id": node.id(), "pageimage": node.pageimage(), "title": node.title()}
+    convert_edge = lambda edge: {"source": edge[0].id(), "target": edge[1].id(), "value": .013}
 
 
     nodes = Parallel(n_jobs=NUM_THREADS, prefer="threads")(delayed(convert_node)(node) for node in G.nodes)
@@ -79,11 +79,16 @@ def graph_from_seed(seed_link):
     """
     print(seed_link)
     G = nx.Graph()
-    seen = {}
     seed_page = WikiPage(seed_link)
+    seen = {seed_page.title(): seed_page}
     Q = [seed_page]
-    node_count, max_count = [0], 1000
+    G.add_node(seed_page)
+
+    # Hard coded thresholds and cutoffs
+    node_count, max_count = [0], 800
     i, cuttoff = 0, 1000
+    seen_to_num_nodes_thresh = 0.08
+    max_links, max_seen_links = 15, 15
 
     job = get_current_job()
 
@@ -97,33 +102,42 @@ def graph_from_seed(seed_link):
                 job.save_meta()
 
             items, titles_already_in_G = node.items(shuffle=True, seen=seen)
-            for item in items:
-                if item.title() not in seen:
-                    node_count[0] += 1
-                    new_Q.append(item)
-                    G.add_edge(node, item)
-                    seen[item.title()] = item
 
-            for sl in titles_already_in_G:
-                G.add_edge(seen[sl], node)
+            # check if we are greater than threshold
+            num_nodes = G.number_of_nodes()
+            if num_nodes == 1 or len(titles_already_in_G)/num_nodes > seen_to_num_nodes_thresh:
+
+                for j, item in enumerate(items):
+                    if j > max_links:
+                        break
+                    if item.title() not in seen:
+                        node_count[0] += 1
+                        new_Q.append(item)
+                        G.add_edge(node, item)
+                        seen[item.title()] = item
+
+                for j, sl in enumerate(titles_already_in_G):
+                    if j > max_seen_links:
+                        break
+                    G.add_edge(seen[sl], node)
 
         except urllib.error.URLError:
             print(f'Error at {node.url()}')
-
-    # if job:
-    #     print("ppewias: ", job.meta['progress'])
 
     while node_count[0] < max_count and i < cuttoff:
         new_Q = []
         Parallel(n_jobs=NUM_THREADS, require='sharedmem')(
             delayed(explore)(node) for node in Q)
-        print(f"Current num pages: {node_count}")
         Q = new_Q
         i += 1
     print("finished while loop")
     if job:
         job.meta['progress'] = 100
         job.save_meta()
+
+    # Adding integer ID to each node
+    for i, node in enumerate(G.nodes):
+        node.set_id(i)
 
     return json.dumps(force_g_format(G))
 

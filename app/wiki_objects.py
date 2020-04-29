@@ -40,7 +40,7 @@ class Page:
 
 class WikiPage(Page):
     """Uses Only Wikipedia php API"""
-    def __init__(self, title, link_lim=15):
+    def __init__(self, title):
         self.title_ = title
         self.items_ = []
         self.images_ = []
@@ -48,12 +48,16 @@ class WikiPage(Page):
         self.home_ = "https://en.wikipedia.org/wiki/"
         self.length_ = None
         self.url_ = self.home_ + self.title_
-        self.link_lim = link_lim
-        self.seen_link_lim = link_lim
         self.group_ = 3
         self.pageimage_ = {}
         self.color_ = None
+        self.id_ = None
 
+    def set_id(self, n):
+        self.id_ = n
+
+    def id(self):
+        return self.id_
 
     def title(self):
         return self.title_
@@ -91,20 +95,17 @@ class WikiPage(Page):
             titles, self.pageimage_ = self.query_api('pageimages|links', self.title())
             if not titles:
                 return [], []
-            print(self.pageimage_)
             if shuffle:
                 random.shuffle(titles)
             seen_links, res = [], []
             num_links, num_seen_links = 0, 0
             for t in titles:
-                if t in seen and num_seen_links < self.seen_link_lim:
+                if t in seen:
                     seen_links.append(t)
                     num_seen_links += 1
-                elif self.is_valid(t) and num_links < self.link_lim:
+                elif self.is_valid(t):
                     res.append(WikiPage(t))
                     num_links += 1
-                if num_links > self.link_lim and num_seen_links > self.seen_link_lim:
-                    break
             self.items_ = (res, seen_links)
             self.group_ = len(titles)
         return self.items_

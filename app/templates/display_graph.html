@@ -13,32 +13,50 @@
     const elem = document.getElementById('3d-graph');
 
     //Graph data generated in python
-    var json_data = {{ force_g_data | tojson | safe }};
-    json_data = JSON.parse(json_data);
+    var g_data = {{ force_g_data | tojson | safe }};
+    g_data = JSON.parse(g_data);
+    g_data.links.forEach(link => {
+      const a = g_data.nodes[link.source];
+      const b = g_data.nodes[link.target];
+      !a.neighbors && (a.neighbors = []);
+      !b.neighbors && (b.neighbors = []);
+      a.neighbors.push(b);
+      b.neighbors.push(a);
+
+      !a.links && (a.links = []);
+      !b.links && (b.links = []);
+      a.links.push(link);
+      b.links.push(link);
+    });
+
 
     const home_url = 'https://en.wikipedia.org/wiki/';
 
-    let highlightNodes = [];
-    let highlightLink = null;
+
+    const highlightNodes_from_node = new Set();
+    const highlightLinks_from_node = new Set();
+    const highlightNodes_from_link = new Set();
+    const highlightLinks_from_link = new Set();
+    let rightClickNode = null;
+
 
     const im_url_prefix = 'https://commons.wikimedia.org/wiki/Special:FilePath/';
     const Graph = ForceGraph3D({controlType: 'fly'})
       (elem)
-        .graphData(json_data)
+        .graphData(g_data)
         .nodeLabel('id')
-        .linkColor(link => link === highlightLink ? 'rgba(254,0,14,1)' : 'rgba(244,255,248,0.3)')
-        .linkWidth(link => link === highlightLink ? 4 : .42)
-        .linkDirectionalParticles(link => link === highlightLink ? 4 : 0)
+        .nodeColor(node => highlightNodes_from_link.has(node) ||  highlightNodes_from_node.has(node) ?
+                node === rightClickNode ? 'rgb(255,0,0,1)' : 'rgba(255,0,0,1)' : node.color)
+        // .linkColor(link => link === highlightLink ? 'rgba(254,0,14,1)' : 'rgba(244,255,248,0.3)')
+        .linkWidth(link => highlightLinks_from_node.has(link) || highlightLinks_from_link.has(link) ? 2 : .001)
+        .linkVisibility(link => highlightLinks_from_node.has(link) || highlightLinks_from_link.has(link))
+        .linkDirectionalParticles(link => highlightLinks_from_link.has(link) || highlightLinks_from_node.has(link) ? 1.5 : 0)
         .linkDirectionalParticleWidth(4)
         .nodeThreeObjectExtend(true)
         .nodeThreeObject(node => {
-              // const obj = new THREE.Mesh(
-              //   new THREE.SphereGeometry(5),
-              //   new THREE.MeshBasicMaterial({ depthWrite: false, transparent: true, opacity: .6, color: node.color, size:node.val})
-              // );
               const obj = new THREE.Mesh();
               // add text sprite as child
-              var sprite = new SpriteText(node.id);
+              var sprite = new SpriteText(node.title);
               sprite.color = node.color;
               sprite.center.set(.5, -.8);
               obj.add(sprite);
@@ -53,27 +71,46 @@
                 obj.add(sprite);
               }
               return obj})
-        .nodeLabel(node => {
-          return label(node);
-        })
-        .onLinkHover(link => {
-          // no state change
-          if (highlightLink === link) return;
-          highlightLink = link;
-          highlightNodes = link ? [link.source, link.target] : [];
+        .nodeLabel(node => rightClickNode === node ? null : label(node))
+        .onNodeClick(node => {
+          highlightNodes_from_node.clear();
+          highlightLinks_from_node.clear();
+          if ((!node && !highlightNodes.size) || (node && rightClickNode === node)) {
+            rightClickNode = null;
+            updateHighlight();
+            return;
+          }
+
+          if (node) {
+            highlightNodes_from_node.add(node);
+            node.neighbors.forEach(neighbor => highlightNodes_from_node.add(neighbor));
+            node.links.forEach(link => highlightLinks_from_node.add(link));
+          }
+
+          rightClickNode = node || null;
 
           updateHighlight();
         })
-
-
-        .onNodeClick(node => {
+        // .onLinkHover(link => {
+        //   highlightNodes_from_link.clear();
+        //   highlightLinks_from_link.clear();
+        //
+        //   if (link) {
+        //     highlightLinks_from_link.add(link);
+        //     highlightNodes_from_link.add(link.source);
+        //     highlightNodes_from_link.add(link.target);
+        //   }
+        //
+        //   updateHighlight();
+        // })
+        .onNodeRightClick(node => {
            window.open(
-              home_url + node.id, "_blank");
+              home_url + node.title, "_blank");
         });
 
     // Spread nodes a little wider
-    Graph.d3Force('charge').strength(-230);
-    Graph.d3Force('link').distance(500);
+    Graph.d3Force('charge').strength(-400);
+    Graph.d3Force('link').distance(300);
     // add_images();
     // setInterval(() => {
     //   Graph.nodeThreeObjectExtend(true);
@@ -107,10 +144,9 @@
     function updateHighlight() {
       // trigger update of highlighted objects in scene
       Graph
-        // .nodeColor(Graph.nodeColor())
+        .nodeColor(Graph.nodeColor())
         .linkWidth(Graph.linkWidth())
-        .linkDirectionalParticles(Graph.linkDirectionalParticles())
-        .linkColor(Graph.linkColor());
+        .linkDirectionalParticles(Graph.linkDirectionalParticles());
 
     }
 
@@ -118,7 +154,7 @@
     function label(node) {
           var w = 900;
           var h = 700;
-          var url = home_url + node.id;
+          var url = home_url + node.title;
           return '<iframe style="visibility:hidden;" onload="this.style.visibility = \'visible\';" src="' +
                   url + '" width="' + w + '" height="' + h + '">';
     }
