@@ -4,6 +4,7 @@ import networkx as nx
 import random
 import multiprocessing
 import json
+import time
 from joblib import Parallel, delayed
 from bs4 import BeautifulSoup
 from rq import get_current_job
@@ -78,24 +79,29 @@ def graph_from_seed(seed_link):
     :return: nx Graph object, the resulting graph of exploration
     """
     print(seed_link)
+    # Start time
+    start_time = time.time()
+
     G = nx.Graph()
     seed_page = WikiPage(seed_link)
     seen = {seed_page.title(): seed_page}
+
     Q = [seed_page]
     G.add_node(seed_page)
 
     # Hard coded thresholds and cutoffs
-    node_count, max_count = [0], 800
+    node_count, max_count = [0], 900
     i, cuttoff = 0, 1000
     seen_to_num_nodes_thresh = 0.08
-    max_links, max_seen_links = 15, 15
+    max_links, max_seen_links = 15, 20
+    time_cutoff = 60*1e3 #one minute
 
     job = get_current_job()
 
     def explore(node):
         try:
             i = node_count[0]
-            if i > max_count:
+            if i > max_count or time.time() - start_time > time_cutoff:
                 return
             if job:
                 job.meta['progress'] = 95.0 * i / max_count
@@ -105,6 +111,8 @@ def graph_from_seed(seed_link):
 
             # check if we are greater than threshold
             num_nodes = G.number_of_nodes()
+
+
             if num_nodes == 1 or len(titles_already_in_G)/num_nodes > seen_to_num_nodes_thresh:
 
                 for j, item in enumerate(items):
@@ -126,6 +134,11 @@ def graph_from_seed(seed_link):
 
     while node_count[0] < max_count and i < cuttoff:
         new_Q = []
+
+        #Cut off if taking too long
+        if time.time() - start_time > time_cutoff:
+            break
+
         Parallel(n_jobs=NUM_THREADS, require='sharedmem')(
             delayed(explore)(node) for node in Q)
         Q = new_Q

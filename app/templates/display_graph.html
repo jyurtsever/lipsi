@@ -71,7 +71,7 @@
                 obj.add(sprite);
               }
               return obj})
-        .nodeLabel(node => rightClickNode === node ? null : label(node))
+        .nodeLabel(node => label(node))
         .onNodeClick(node => {
           highlightNodes_from_node.clear();
           highlightLinks_from_node.clear();
@@ -91,55 +91,15 @@
 
           updateHighlight();
         })
-        // .onLinkHover(link => {
-        //   highlightNodes_from_link.clear();
-        //   highlightLinks_from_link.clear();
-        //
-        //   if (link) {
-        //     highlightLinks_from_link.add(link);
-        //     highlightNodes_from_link.add(link.source);
-        //     highlightNodes_from_link.add(link.target);
-        //   }
-        //
-        //   updateHighlight();
-        // })
         .onNodeRightClick(node => {
            window.open(
               home_url + node.title, "_blank");
         });
 
     // Spread nodes a little wider
-    Graph.d3Force('charge').strength(-400);
-    Graph.d3Force('link').distance(300);
-    // add_images();
-    // setInterval(() => {
-    //   Graph.nodeThreeObjectExtend(true);
-    //   Graph.nodeThreeObject(node => {
-    //     // const obj = new THREE.Mesh(
-    //     //   new THREE.SphereGeometry(5),
-    //     //   new THREE.MeshBasicMaterial({ depthWrite: false, transparent: true, opacity: .6, color: node.color, size:node.val})
-    //     // );
-    //     // // add text sprite as child
-    //     var pos = Graph.cameraPosition();
-    //     var dist = (pos.x - node.x)*(pos.x - node.x) + (pos.y - node.y)*(pos.y - node.y) + (pos.z - node.z)*(pos.z - node.z);
-    //     if (dist < 2000000) {
-    //       // add image sprite as child
-    //       const obj = new THREE.Mesh();
-    //       var sprite = new SpriteText(node.id);
-    //       sprite.color = node.color;
-    //       sprite.center.set(.5, -.8);
-    //       obj.add(sprite);
-    //       const imgTexture = new THREE.TextureLoader().load(im_url);
-    //       const material = new THREE.SpriteMaterial({map: imgTexture});
-    //       sprite = new THREE.Sprite(material);
-    //       // var new_w = 30/sprite.scale.y * sprite.scale.x;
-    //       sprite.scale.set(30, 30);
-    //       sprite.center.set(.5, 1.3);
-    //       obj.add(sprite);
-    //       return obj;
-    //     }
-    //   });
-    // }, 1000);
+    Graph.d3Force('charge').strength(-650);
+    Graph.d3Force('link').distance(350);
+
 
     function updateHighlight() {
       // trigger update of highlighted objects in scene
