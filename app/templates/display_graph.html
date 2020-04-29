@@ -60,7 +60,10 @@
               sprite.color = node.color;
               sprite.center.set(.5, -.8);
               obj.add(sprite);
-              if (node.pageimage.source) {
+
+              const area_thresh = 9e6;
+
+              if (node.pageimage.source && node.pageimage.width * node.pageimage.height < area_thresh) {
                 const imgTexture = new THREE.TextureLoader().load(node.pageimage.source);
                 const material = new THREE.SpriteMaterial({map: imgTexture});
                 sprite = new THREE.Sprite(material);
@@ -97,8 +100,8 @@
         });
 
     // Spread nodes a little wider
-    Graph.d3Force('charge').strength(-650);
-    Graph.d3Force('link').distance(350);
+    Graph.d3Force('charge').strength(-680);
+    Graph.d3Force('link').distance(400);
 
 
     function updateHighlight() {

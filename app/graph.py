@@ -92,7 +92,7 @@ def graph_from_seed(seed_link):
     # Hard coded thresholds and cutoffs
     node_count, max_count = [0], 900
     i, cuttoff = 0, 1000
-    seen_to_num_nodes_thresh = 0.05
+    seen_to_num_nodes_thresh = 0.09
     max_links, max_seen_links = 15, 20
     time_cutoff = 60*1e3 #one minute
 
@@ -101,10 +101,11 @@ def graph_from_seed(seed_link):
     def explore(node):
         try:
             i = node_count[0]
-            if i > max_count or time.time() - start_time > time_cutoff:
+            time_elapsed = time.time() - start_time
+            if i > max_count or time_elapsed > time_cutoff:
                 return
             if job:
-                job.meta['progress'] = 95.0 * i / max_count
+                job.meta['progress'] = 95.0 * max(i / max_count, time_elapsed / time_cutoff)
                 job.save_meta()
 
             items, titles_already_in_G = node.items(shuffle=True, seen=seen)
