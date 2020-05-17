@@ -31,14 +31,6 @@ def wiki_make_lst_from_seed(link):
         return list(res), titles
 
 
-def simple_force_g_format(G, titles):
-    res = {}
-    print("node length: ", len(G.nodes))
-    nodes = [{"id": node, "group": 1, "val": .5, "title": titles[node]} for node in G.nodes]
-    links = [{"source": u, "target": v, "value": .01} for (u, v) in G.edges]
-    res["nodes"], res["links"] = nodes, links
-    return res
-
 
 def force_g_format(G):
     """
@@ -59,42 +51,32 @@ def force_g_format(G):
     res["nodes"], res["links"] = nodes, links
     return res
 
-def simple_graph_from_seed(seed_link):
-    links, titles = wiki_make_lst_from_seed(seed_link)
-    titles[seed_link] = find_title(seed_link)
-    links = links[:300]
-    G = nx.Graph()
-    G.add_node(seed_link)
-    for link in links:
-        G.add_node(link)
-        G.add_edge(seed_link, link)
-    return simple_force_g_format(G, titles)
 
 
 
 
-def graph_from_seed(seed_link):
+def graph_from_seed(seed_title):
     """
-    :param seed_link: url to start the graphing proces
+    :param seed_title: title to start the graphing process
     :return: nx Graph object, the resulting graph of exploration
     """
-    print(seed_link)
+    print(seed_title)
     # Start time
     start_time = time.time()
 
     G = nx.Graph()
-    seed_page = WikiPage(seed_link)
+    seed_page = WikiPage(seed_title)
     seen = {seed_page.title(): seed_page}
 
     Q = [seed_page]
     G.add_node(seed_page)
 
     # Hard coded thresholds and cutoffs
-    node_count, max_count = [0], 900
+    node_count, max_count = [0], 850
     i, cuttoff = 0, 1000
-    seen_to_num_nodes_thresh = 0.09
+    seen_to_num_nodes_thresh = 0.08
     max_links, max_seen_links = 15, 20
-    time_cutoff = 60*1e3 #one minute
+    time_cutoff = 80*1e3 #one minute
 
     job = get_current_job()
 
@@ -155,16 +137,5 @@ def graph_from_seed(seed_link):
 
     return json.dumps(force_g_format(G))
 
-
-def find_title(url):
-    # webpage = urllib.request.urlopen(url).read()
-    # title = str(webpage).split('<title>')[1].split('</title>')[0]
-    # return title
-    return url[len('http://en.wikipedia.org/wiki/'):]
-
-
-def titlecase(s):
-    return re.sub(r"[A-Za-z]+('[A-Za-z]+)?",
-     lambda mo: mo.group(0)[0].upper() + mo.group(0)[1:].lower(), s)
 
 
