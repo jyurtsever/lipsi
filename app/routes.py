@@ -81,11 +81,18 @@ def load_graph():
     Starts job for generating graph
     :return: Loading screen for generating graph
     """
+    start_id = int(request.args.get('start_id')) if request.args.get('start_id') else 0
+    seed_id = int(request.args.get('seed_id')) if request.args.get('seed_id') else 0
+    max_count = 100 if request.args.get('seed_id') else 500
+    print("start id in routes: ", start_id)
+
     url = urllib.parse.unquote(request.args.get('url'))
     queue = current_app.task_queue
-    job = queue.enqueue('app.graph.graph_from_seed', url)
+    job = queue.enqueue('app.graph.graph_from_seed', args=(url, start_id, seed_id, max_count))
     job.meta['progress'] = 0
     job.save_meta()
+    if request.args.get('return_data'):
+        return jsonify({'job_id': job.id})
     return render_template('load_graph.html', url=urllib.parse.quote(url), job_id=job.id)
 
 
@@ -134,6 +141,8 @@ def make_graph():
             return redirect(url_for('load_graph', url=seed_link))
         force_g_dict = job.result
         print("rendering html")
+        if request.args.get('return_data'):
+            return force_g_dict
         return render_template('display_graph.html', force_g_data=force_g_dict)
     else:
         links = wiki_make_lst_from_seed(seed_link)

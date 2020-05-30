@@ -9,28 +9,17 @@
 <body>
   <div id="3d-graph"></div>
 
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
   <script>
     const elem = document.getElementById('3d-graph');
+
+
+
 
     // Graph data generated in python
     var g_data = {{ force_g_data | tojson | safe }};
     g_data = JSON.parse(g_data);
-
-    // Add neighbors attribute for node with adjacent nodes
-    g_data.links.forEach(link => {
-      const a = g_data.nodes[link.source];
-      const b = g_data.nodes[link.target];
-      !a.neighbors && (a.neighbors = []);
-      !b.neighbors && (b.neighbors = []);
-      a.neighbors.push(b);
-      b.neighbors.push(a);
-
-      !a.links && (a.links = []);
-      !b.links && (b.links = []);
-      a.links.push(link);
-      b.links.push(link);
-    });
-
+    createNeighbors(g_data);
 
     const home_url = 'https://en.wikipedia.org/wiki/';
 
@@ -41,9 +30,28 @@
     const highlightLinks_from_link = new Set();
     let leftClickNode = null;
 
+
+    // Check if control key is pressed
+    $(document).keydown(function(event) {
+      console.log(event.which);
+      if (event.which === 17 || event.which === 91)
+          cntrlIsPressed = true;
+      if (event.which === 16)
+          shftIsPressed = true;
+      });
+
+    $(document).keyup(function() {
+        cntrlIsPressed = false;
+        shftIsPressed = false;
+    });
+
+    var cntrlIsPressed = false;
+    var shftIsPressed = false;
+
     const Graph = ForceGraph3D({controlType: 'fly'})
       (elem)
         .graphData(g_data)
+        .enableNodeDrag(false)
         .nodeLabel('id')
         .nodeColor(node => highlightNodes_from_link.has(node) ||  highlightNodes_from_node.has(node) ?
                 node === leftClickNode ? 'rgb(255,0,0,1)' : 'rgba(255,0,0,1)' : node.color)
@@ -74,38 +82,74 @@
               }
               return obj})
         .nodeLabel(node => label(node))
-        .onNodeDrage(node => loadExtendedGraph(node))
+        .onNodeRightClick(node => {look_at(node); loadExtendedGraph(node);})
         .onNodeClick(node => {
           // heighlight all the adjacent nodes and vertices
+          look_at(node);
+
           highlightNodes_from_node.clear();
           highlightLinks_from_node.clear();
-          if ((!node && !highlightNodes.size) || (node && leftClickNode === node)) {
+          if ((!node && !highlightNodes.size) || (node && leftClickNode === node) || !shftIsPressed) {
             leftClickNode = null;
             updateHighlight();
-            return;
           }
 
-          if (node) {
-            highlightNodes_from_node.add(node);
-            node.neighbors.forEach(neighbor => highlightNodes_from_node.add(neighbor));
-            node.links.forEach(link => highlightLinks_from_node.add(link));
+          if (cntrlIsPressed) {
+            window.open(home_url + node.title, "_blank");
+          } else if (shftIsPressed) {
+            if (node) {
+              highlightNodes_from_node.add(node);
+              node.neighbors.forEach(neighbor => highlightNodes_from_node.add(neighbor));
+              node.links.forEach(link => highlightLinks_from_node.add(link));
+            }
+
+            leftClickNode = node || null;
+
+            updateHighlight();
           }
-
-          leftClickNode = node || null;
-
-          updateHighlight();
-        })
-        .onNodeRightClick(node => {
-           window.open(
-              home_url + node.title, "_blank");
         });
+        // .onNodeRightClick(node => {
+        //    window.open(
+        //       home_url + node.title, "_blank");
+        // });
 
     // Spread nodes a little wider
-    Graph.d3Force('charge').strength(-680);
-    Graph.d3Force('link').distance(400);
-    const start_node = g_data.nodes[0];
-    setTimeout(() => Graph.cameraPosition({x: start_node.x - 10, y: start_node.y, z: start_node.z}), 6000);
+    Graph.d3Force('charge').strength(-800);
+    Graph.d3Force('link').distance(950);
+    // console.log(Graph);
+    setTimeout(() => look_at(g_data.nodes[0]), 8000);
 
+    setTimeout(() => fixAllNodes(), 9e3);
+
+
+    function createNeighbors(json_data) {
+      // Add neighbors attribute for node with adjacent nodes
+      const seed_id = json_data.nodes[0].id;
+      let offset = json_data.nodes[1].id - 1;
+      console.log('offset');
+      console.log(offset);
+      json_data.links.forEach(link => {
+        const a = link.source === seed_id ? json_data.nodes[0] : json_data.nodes[link.source - offset];
+        const b = link.target === seed_id ? json_data.nodes[0] : json_data.nodes[link.target - offset];
+        !a.neighbors && (a.neighbors = []);
+        !b.neighbors && (b.neighbors = []);
+        a.neighbors.push(b);
+        b.neighbors.push(a);
+
+        !a.links && (a.links = []);
+        !b.links && (b.links = []);
+        a.links.push(link);
+        b.links.push(link);
+      });
+    }
+
+    function  fixAllNodes() {
+      g_data.nodes.forEach(node => {
+        node.fx = node.x;
+        node.fy = node.y;
+        node.fz = node.z;
+      })
+    }
 
     function updateHighlight() {
       // color vertices and node
@@ -126,33 +170,70 @@
                   url + '" width="' + w + '" height="' + h + '">';
     }
 
-    function loadExtendedGraph(node) {
-
+    function look_at(node) {
+      // moves close to the node without rotating the camera
+      const distance = 300;
+      const delay = 500;
+      const cp = Graph.cameraPosition();
+      let vec = new THREE.Vector3(cp.x - node.x, cp.y - node.y, cp.z - node.z);
+      vec = vec.normalize();
+      vec = vec.multiplyScalar(distance);
+      Graph.cameraPosition({ x: vec.x + node.x, y: vec.y + node.y, z: vec.z + node.z},
+                            node, delay);
+      // setTimeout(() => Graph.camera().lookAt(node.x, node.y, node.z), delay);
     }
 
-    function check_job_status(status_url) {
-            $.getJSON(status_url, function(data) {
-              console.log(data);
-              switch (data.status) {
-                case "unknown":
-                    console.log("Unknown job id", "danger");
-                    break;
-                case "finished":
-                    console.log("success");
-                    var new_url = '/make_graph?url='.concat(url_str, '&job_id=', job_id);
-                    console.log(new_url);
-                    window.location.replace(encodeURI(new_url));
-                    break;
-                case "failed":
-                    console.log("Job failed: " + data.message, "danger");
-                    break;
-                default:
-                  console.log(data.progress);
-                  setTimeout(function() {
-                    check_job_status(status_url);
-                  }, 500);
-              }
-            });
-          }
+    function loadExtendedGraph(node) {
+      let load_graph_url = '{{url_for("load_graph")}}';
+      console.log(load_graph_url);
+      load_graph_url = load_graph_url.concat('?url=', node.title);
+      load_graph_url = load_graph_url.concat('&start_id=', g_data.nodes.length);
+      load_graph_url = load_graph_url.concat('&return_data=', '1');
+      load_graph_url = load_graph_url.concat('&seed_id=', node.id);
+
+      $.getJSON(load_graph_url, function(data) {
+        let status_url = '{{url_for("job_status")}}';
+        status_url = status_url.concat('?job_id=', data.job_id);
+        load_graph_in_backround_then_merge(status_url, node, data.job_id);
+
+      })
+    }
+
+    function load_graph_in_backround_then_merge(status_url, node, job_id) {
+      $.getJSON(status_url, function(data) {
+        switch (data.status) {
+          case "unknown":
+              console.log("Unknown job id", "danger");
+              break;
+          case "finished":
+              console.log("success");
+              let graph_data_url = '{{url_for("make_graph")}}'; // '/make_graph?url='.concat(url_str, '&job_id=', job_id);
+              graph_data_url = graph_data_url.concat('?url=', node.title);
+              graph_data_url = graph_data_url.concat('&job_id=', job_id);
+              graph_data_url = graph_data_url.concat('&return_data=', '1');
+              merge_graph(graph_data_url, node);
+              break;
+          case "failed":
+              console.log("Job failed: " + data.message, "danger");
+              break;
+          default:
+            console.log(data.progress);
+            setTimeout(function() {
+              load_graph_in_backround_then_merge(status_url, node, job_id);
+            }, 500);
+        }
+      });
+    }
+
+    function merge_graph(graph_data_url, node) {
+      $.getJSON(graph_data_url, function (data) {
+        createNeighbors(data);
+        node.neighbors = node.neighbors.concat(data.nodes[0].neighbors);
+        node.links = node.links.concat(data.nodes[0].links);
+        g_data.nodes = g_data.nodes.concat(data.nodes.slice(1));
+        g_data.links = g_data.links.concat(data.links);
+        Graph.graphData(g_data);
+      })
+    }
   </script>
 </body>

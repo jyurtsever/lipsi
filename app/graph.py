@@ -55,7 +55,7 @@ def force_g_format(G):
 
 
 
-def graph_from_seed(seed_title):
+def graph_from_seed(seed_title, start_id=0, seed_id=0, max_count=850):
     """
     :param seed_title: title to start the graphing process
     :return: nx Graph object, the resulting graph of exploration
@@ -72,7 +72,7 @@ def graph_from_seed(seed_title):
     G.add_node(seed_page)
 
     # Hard coded thresholds and cutoffs
-    node_count, max_count = [0], 850
+    node_count = [0]
     i, cuttoff = 0, 1000
     seen_to_num_nodes_thresh = 0.08
     max_links, max_seen_links = 15, 20
@@ -133,8 +133,10 @@ def graph_from_seed(seed_title):
 
     # Adding integer ID to each node
     for i, node in enumerate(G.nodes):
-        node.set_id(i)
-
+        if i == 0:
+            node.set_id(seed_id)
+        else:
+            node.set_id(i + start_id)
     return json.dumps(force_g_format(G))
 
 
