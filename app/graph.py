@@ -43,7 +43,7 @@ def force_g_format(G):
     print("edge length: ", len(G.edges))
 
     convert_node = lambda node: {"color": node.color(), "val": .5, "id": node.id(), "pageimage": node.pageimage(), "title": node.title()}
-    convert_edge = lambda edge: {"source": edge[0].id(), "target": edge[1].id(), "value": .013}
+    convert_edge = lambda edge: {"source": edge[0].id(), "target": edge[1].id(), "value": 10000}
 
 
     nodes = Parallel(n_jobs=NUM_THREADS, prefer="threads")(delayed(convert_node)(node) for node in G.nodes)
@@ -135,6 +135,8 @@ def graph_from_seed(seed_title, start_id=0, seed_id=0, max_count=850):
     for i, node in enumerate(G.nodes):
         if i == 0:
             node.set_id(seed_id)
+            # if seed_id != 0:
+            #     node.set_edge_val(100)
         else:
             node.set_id(i + start_id)
     return json.dumps(force_g_format(G))

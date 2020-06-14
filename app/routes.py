@@ -83,7 +83,7 @@ def load_graph():
     """
     start_id = int(request.args.get('start_id')) if request.args.get('start_id') else 0
     seed_id = int(request.args.get('seed_id')) if request.args.get('seed_id') else 0
-    max_count = 100 if request.args.get('seed_id') else 500
+    max_count = 60 if request.args.get('seed_id') else 450
     print("start id in routes: ", start_id)
 
     url = urllib.parse.unquote(request.args.get('url'))

@@ -8,7 +8,7 @@
 
 <body>
   <div id="3d-graph"></div>
-
+  <div id="right_click_menu" style="position: absolute; top: 5px; right: 5px;"></div>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
   <script>
     const elem = document.getElementById('3d-graph');
@@ -28,12 +28,16 @@
     const highlightLinks_from_node = new Set();
     const highlightNodes_from_link = new Set();
     const highlightLinks_from_link = new Set();
+    const bridge_nodes = new Set();
     let leftClickNode = null;
 
+    // Center of gravity
+    var centerGravity = new THREE.Vector3(0, 0, 0);
+    var isAnimationActive = false;
 
     // Check if control key is pressed
     $(document).keydown(function(event) {
-      console.log(event.which);
+      // console.log(event.which);
       if (event.which === 17 || event.which === 91)
           cntrlIsPressed = true;
       if (event.which === 16)
@@ -68,7 +72,7 @@
               sprite.center.set(.5, -.8);
               obj.add(sprite);
 
-              const area_thresh = 9e6;
+              const area_thresh = 18e6;
 
               if (node.pageimage.source && node.pageimage.width * node.pageimage.height < area_thresh) {
                 const imgTexture = new THREE.TextureLoader().load(node.pageimage.source);
@@ -82,7 +86,17 @@
               }
               return obj})
         .nodeLabel(node => label(node))
-        .onNodeRightClick(node => {look_at(node); loadExtendedGraph(node);})
+        .onNodeRightClick(node => {
+          // document.getElementById('right_click_menu').innerHTML = '<button id="animationToggle" style="margin: 8px; height: 25px; width: 150px;"> Pause Animation </button>';
+          // document.getElementById('right_click_menu').addEventListener('click', event => {
+          //   // isAnimationActive ? Graph.pauseAnimation() : Graph.resumeAnimation();
+          //
+          //   isAnimationActive = !isAnimationActive;
+          //   event.target.innerHTML = `${(isAnimationActive ? 'Pause' : 'Resume')} Animation` + node.title;
+          // });
+          look_at(node); loadExtendedGraph(node);
+
+        })
         .onNodeClick(node => {
           // heighlight all the adjacent nodes and vertices
           look_at(node);
@@ -114,8 +128,11 @@
         // });
 
     // Spread nodes a little wider
-    Graph.d3Force('charge').strength(-800);
-    Graph.d3Force('link').distance(950);
+    Graph.d3Force('charge').strength(-1050);
+    Graph.d3Force('link').distance(600);
+    Graph.d3Force('link').strength(link => bridge_nodes.has(link.source) || bridge_nodes.has(link.target) ? .99 : .9);
+    // Graph.d3Force('center') = null;
+
     // console.log(Graph);
     setTimeout(() => look_at(g_data.nodes[0]), 8000);
 
@@ -145,10 +162,14 @@
 
     function  fixAllNodes() {
       g_data.nodes.forEach(node => {
+        fixLocation(node);
+      })
+    }
+
+    function fixLocation(node) {
         node.fx = node.x;
         node.fy = node.y;
         node.fz = node.z;
-      })
     }
 
     function updateHighlight() {
@@ -180,7 +201,6 @@
       vec = vec.multiplyScalar(distance);
       Graph.cameraPosition({ x: vec.x + node.x, y: vec.y + node.y, z: vec.z + node.z},
                             node, delay);
-      // setTimeout(() => Graph.camera().lookAt(node.x, node.y, node.z), delay);
     }
 
     function loadExtendedGraph(node) {
@@ -200,6 +220,7 @@
     }
 
     function load_graph_in_backround_then_merge(status_url, node, job_id) {
+      //
       $.getJSON(status_url, function(data) {
         switch (data.status) {
           case "unknown":
@@ -226,14 +247,32 @@
     }
 
     function merge_graph(graph_data_url, node) {
+      // merges graph data from graph_data_url with current graph usine "node" as the bridge connection
       $.getJSON(graph_data_url, function (data) {
         createNeighbors(data);
+        // setLocationsToNode(data, node);
         node.neighbors = node.neighbors.concat(data.nodes[0].neighbors);
         node.links = node.links.concat(data.nodes[0].links);
+        bridge_nodes.add(node);
+        fixLocation(node);
         g_data.nodes = g_data.nodes.concat(data.nodes.slice(1));
         g_data.links = g_data.links.concat(data.links);
+        reCenterGraph(node);
         Graph.graphData(g_data);
-      })
+      });
+      setTimeout(() => fixAllNodes(), 9e3);
+
+    }
+
+    function reCenterGraph(seed_node) {
+      // sets location of all data nodes to the location of seed_node and set start velocity away from graph senter
+      let offset = (new THREE.Vector3(seed_node.x, seed_node.y, seed_node.z)).sub(centerGravity);
+      offset = offset.multiplyScalar(.2);
+      centerGravity = centerGravity + offset;
+      Graph.d3Force('center').x(centerGravity.x);
+      Graph.d3Force('center').y(centerGravity.y);
+      Graph.d3Force('center').z(centerGravity.z);
+
     }
   </script>
 </body>

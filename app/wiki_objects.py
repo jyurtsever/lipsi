@@ -52,12 +52,19 @@ class WikiPage(Page):
         self.pageimage_ = {}
         self.color_ = None
         self.id_ = None
+        self.edge_val_ = .013
 
     def set_id(self, n):
         self.id_ = n
 
     def id(self):
         return self.id_
+
+    def set_edge_val(self, d):
+        self.edge_val_ = d
+
+    def edge_val(self):
+        return self.edge_val_
 
     def title(self):
         return self.title_
