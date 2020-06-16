@@ -288,6 +288,7 @@
     }
 
     function loadExtendedGraph(node) {
+      // Extends the current graph using node as a seed
       let load_graph_url = '{{url_for("load_graph")}}';
       console.log(load_graph_url);
       load_graph_url = load_graph_url.concat('?url=', node.title);
@@ -304,7 +305,7 @@
     }
 
     function load_graph_in_backround_then_merge(status_url, node, job_id) {
-      //
+      // Loads the extension of graph in background then merges current graph with the extention
       $.getJSON(status_url, function(data) {
         switch (data.status) {
           case "unknown":
@@ -312,7 +313,7 @@
               break;
           case "finished":
               console.log("success");
-              let graph_data_url = '{{url_for("make_graph")}}'; // '/make_graph?url='.concat(url_str, '&job_id=', job_id);
+              let graph_data_url = '{{url_for("make_graph")}}';
               graph_data_url = graph_data_url.concat('?url=', node.title);
               graph_data_url = graph_data_url.concat('&job_id=', job_id);
               graph_data_url = graph_data_url.concat('&return_data=', '1');
