@@ -1,28 +1,53 @@
 <head>
-  <style> body { margin: 0; } </style>
+  <style> body { margin: 0; }
+  .vertical-menu {
+    width: 300px; /* Set a width if you like */
+  }
+  .vertical-menu a {
+    background-color: #eee; /* Grey background color */
+    color: black; /* Black text color */
+    display: block; /* Make the links appear below each other */
+    padding: 12px; /* Add some padding */
+    text-decoration: none; /* Remove underline from links */
+  }
+  .vertical-menu a:hover {
+    background-color: #ccc; /* Dark grey background on mouse-over */
+  }
+  </style>
+
   <script src="//unpkg.com/three"></script>
   <script src="//unpkg.com/three-spritetext"></script>
   <script src="//unpkg.com/3d-force-graph"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
   <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 </head>
 
 <body>
-  <div id="3d-graph"></div>
-  <div id="right_click_menu" style="position: absolute; top: 5px; right: 5px;"></div>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+
+    <div id="3d-graph">
+    </div>
+    <div id="menu" class="vertical-menu" style="position: absolute; top: 5px; left: 5px; display: none">
+      <a id="showLinks"> Show Connected Articles </a>
+      <a id="expand"> Expand Network Using Article </a>
+      <a id="open"> Open Article in New Tab </a>
+      <a id="closeMenu"> Close Menu </a>
+    </div>
+
   <script>
     const elem = document.getElementById('3d-graph');
-
 
 
 
     // Graph data generated in python
     var g_data = {{ force_g_data | tojson | safe }};
     g_data = JSON.parse(g_data);
+
+    // Add neighbor attribute to each node
     createNeighbors(g_data);
 
-    const home_url = 'https://en.wikipedia.org/wiki/';
 
+    // Initialize Global Variables
+    const home_url = 'https://en.wikipedia.org/wiki/';
 
     const highlightNodes_from_node = new Set();
     const highlightLinks_from_node = new Set();
@@ -31,11 +56,10 @@
     const bridge_nodes = new Set();
     let leftClickNode = null;
 
-    // Center of gravity
+    // Center of gravity of all the node weighted equally
     var centerGravity = new THREE.Vector3(0, 0, 0);
-    var isAnimationActive = false;
 
-    // Check if control key is pressed
+    // Check if control key is pressed up or down
     $(document).keydown(function(event) {
       // console.log(event.which);
       if (event.which === 17 || event.which === 91)
@@ -49,9 +73,15 @@
         shftIsPressed = false;
     });
 
+    // Toggle global variable initialization
     var cntrlIsPressed = false;
     var shftIsPressed = false;
+    var rightClickedNode = null;
 
+    /*
+    Below we define the graph using the https://github.com/vasturiano/3d-force-graph,
+    a library created by Vasco Asturiano
+    */
     const Graph = ForceGraph3D({controlType: 'fly'})
       (elem)
         .graphData(g_data)
@@ -87,20 +117,18 @@
               return obj})
         .nodeLabel(node => label(node))
         .onNodeRightClick(node => {
-          // document.getElementById('right_click_menu').innerHTML = '<button id="animationToggle" style="margin: 8px; height: 25px; width: 150px;"> Pause Animation </button>';
-          // document.getElementById('right_click_menu').addEventListener('click', event => {
-          //   // isAnimationActive ? Graph.pauseAnimation() : Graph.resumeAnimation();
-          //
-          //   isAnimationActive = !isAnimationActive;
-          //   event.target.innerHTML = `${(isAnimationActive ? 'Pause' : 'Resume')} Animation` + node.title;
-          // });
-          look_at(node); loadExtendedGraph(node);
-
+          displayMenu(node);
+        })
+        .onBackgroundRightClick(() => {
+          undisplayMenu();
+        })
+        .onBackgroundClick(() => {
+          undisplayMenu();
         })
         .onNodeClick(node => {
           // heighlight all the adjacent nodes and vertices
+          undisplayMenu();
           look_at(node);
-
           highlightNodes_from_node.clear();
           highlightLinks_from_node.clear();
           if ((!node && !highlightNodes.size) || (node && leftClickNode === node) || !shftIsPressed) {
@@ -122,22 +150,79 @@
             updateHighlight();
           }
         });
-        // .onNodeRightClick(node => {
-        //    window.open(
-        //       home_url + node.title, "_blank");
-        // });
+
 
     // Spread nodes a little wider
     Graph.d3Force('charge').strength(-1050);
-    Graph.d3Force('link').distance(600);
-    Graph.d3Force('link').strength(link => bridge_nodes.has(link.source) || bridge_nodes.has(link.target) ? .99 : .9);
-    // Graph.d3Force('center') = null;
+    Graph.d3Force('link').distance(750);
+    Graph.d3Force('link').strength(link => bridge_nodes.has(link.source) || bridge_nodes.has(link.target) ? .99 : .8);
 
     // console.log(Graph);
     setTimeout(() => look_at(g_data.nodes[0]), 8000);
 
     setTimeout(() => fixAllNodes(), 9e3);
 
+
+
+    /*
+    In this part of the code, we deal with custom context menu, which pops up during
+    right click. We can show the nodes links, expand the graph using the node as a
+    seed, or open the article associated with node in a new tab
+     */
+
+    document.getElementById('showLinks').addEventListener('click', event => {
+      showConnections(rightClickedNode);
+    });
+
+    document.getElementById('expand').addEventListener('click', event => {
+      loadExtendedGraph(rightClickedNode);
+    });
+
+    document.getElementById('open').addEventListener('click', event => {
+      openNodeUrl(rightClickedNode);
+    });
+
+    document.getElementById('closeMenu').addEventListener('click', event => {
+      undisplayMenu();
+    });
+
+    function displayMenu(node) {
+      // Opens context menu next to node
+      document.getElementById("menu").style.display = "block";
+      var coords = Graph.graph2ScreenCoords(node.x, node.y, node.z);
+      document.getElementById("menu").style.top = coords.y.toString() + "px";
+      document.getElementById("menu").style.left = (coords.x + 30).toString() + "px";
+      rightClickedNode = node;
+    }
+
+    function undisplayMenu() {
+      // Close context menu and sets right clicked node to null
+      document.getElementById("menu").style.display = "none";
+      rightClickedNode = null;
+    }
+
+    /*
+    End context menu code
+     */
+
+    function showConnections(node) {
+      // Shows the links between nodes
+      highlightNodes_from_node.clear();
+      highlightLinks_from_node.clear();
+      if (node) {
+        highlightNodes_from_node.add(node);
+        node.neighbors.forEach(neighbor => highlightNodes_from_node.add(neighbor));
+        node.links.forEach(link => highlightLinks_from_node.add(link));
+      }
+
+      leftClickNode = node || null;
+
+      updateHighlight();
+    }
+
+    function openNodeUrl(node) {
+      window.open(home_url + node.title, "_blank");
+    }
 
     function createNeighbors(json_data) {
       // Add neighbors attribute for node with adjacent nodes
@@ -159,7 +244,6 @@
         b.links.push(link);
       });
     }
-
     function  fixAllNodes() {
       g_data.nodes.forEach(node => {
         fixLocation(node);
