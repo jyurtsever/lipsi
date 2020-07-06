@@ -259,7 +259,7 @@
 
     // Spread nodes a little wider
     Graph.d3Force('charge').strength(-1250);
-    Graph.d3Force('link').distance(650);
+    Graph.d3Force('link').distance(900);
     Graph.d3Force('link').strength(link => bridge_nodes.has(link.source) || bridge_nodes.has(link.target) ? .99 : .8);
 
     // Set the seed node position to 0 and look at the seed node
