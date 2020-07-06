@@ -1,18 +1,67 @@
 <head>
   <style> body { margin: 0; }
-  .vertical-menu {
-    width: 300px; /* Set a width if you like */
-  }
-  .vertical-menu a {
-    background-color: #eee; /* Grey background color */
-    color: black; /* Black text color */
-    display: block; /* Make the links appear below each other */
-    padding: 12px; /* Add some padding */
-    text-decoration: none; /* Remove underline from links */
-  }
-  .vertical-menu a:hover {
-    background-color: #ccc; /* Dark grey background on mouse-over */
-  }
+    .vertical-menu {
+        width: 300px; /* Set a width if you like */
+    }
+    .vertical-menu a {
+        background-color: rgba(192, 255, 253, 0.82); /* Grey background color */
+        color: rgba(0, 0, 0, 0.84); /* Black text color */
+        display: block; /* Make the links appear below each other */
+        padding: 12px; /* Add some padding */
+        text-decoration: none; /* Remove underline from links */
+    }
+    .vertical-menu a:hover {
+        background-color: #ccc; /* Dark grey background on mouse-over */
+    }
+     /* The Modal (background) */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1; /* Sit on top */
+      padding-top: 100px; /* Location of the box */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      color: rgba(246, 255, 255, 0.92);
+      background-color: rgb(0,0,0); /* Fallback color */
+      background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    /* Modal Content */
+    .modal-content {
+      background-color: rgba(129, 253, 248, 0.36);
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 30%;
+    }
+
+    /* The Close Button */
+    .close {
+      color: #aaaaaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: #000;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .button {
+      position: absolute;
+      height: 30px;
+      width: 200px;
+      font-size: 17px;
+      top: 5px;
+      right: 5px;
+      background-color: rgba(82, 82, 82, 0.84);
+      color: rgba(246, 255, 255, 0.92);
+    }
   </style>
 
   <script src="//unpkg.com/three"></script>
@@ -24,19 +73,71 @@
 
 <body>
 
-    <div id="3d-graph">
+    <div id="3d-graph"></div>
+    <!-- Trigger/Open The Modal -->
+    <button id="myBtn" class="button"> Controls </button>
+
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <div style="font-size: 30px; font-family: Helvetica,serif; margin: auto;">
+            <p> WASD: move </p>
+            <p> R | F: up | down </p>
+            <p> Q | E: roll</p>
+            <p> up key | down key: pitch </p>
+            <p> left key | right key: yaw </p>
+            <p> left click: navigate to node </p>
+            <p> right click: open node context menu</p>
+        </div>
+      </div>
     </div>
+
+
+    <!-- Context Menu -->
     <div id="menu" class="vertical-menu" style="position: absolute; top: 5px; left: 5px; display: none">
-      <a id="showLinks"> Show Connected Articles </a>
+      <a id="showLinks"> Show Connected Articles   (shift+clk) </a>
       <a id="expand"> Expand Network Using Article </a>
-      <a id="open"> Open Article in New Tab </a>
+      <a id="open"> Open Article in New Tab (ctrl+clk)</a>
       <a id="closeMenu"> Close Menu </a>
     </div>
 
   <script>
+    /* This part of the code is devoted to displaying the button */
+
+    // Get the modal
+    var modal = document.getElementById("myModal");
+
+    // Get the button that opens the modal
+    var btn = document.getElementById("myBtn");
+
+    // Get the <span> element that closes the modal
+    var span = document.getElementsByClassName("close")[0];
+
+    // When the user clicks the button, open the modal
+    btn.onclick = function() {
+      modal.style.display = "block";
+    };
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function() {
+      modal.style.display = "none";
+    };
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    };
+
+    /* End Button Code */
+
+
+    /* Begin 3D Graph Section */
+
     const elem = document.getElementById('3d-graph');
-
-
 
     // Graph data generated in python
     var g_data = {{ force_g_data | tojson | safe }};
@@ -124,6 +225,10 @@
         })
         .onBackgroundClick(() => {
           undisplayMenu();
+          highlightNodes_from_node.clear();
+          highlightLinks_from_node.clear();
+          leftClickNode = null;
+          updateHighlight();
         })
         .onNodeClick(node => {
           // heighlight all the adjacent nodes and vertices
@@ -153,15 +258,17 @@
 
 
     // Spread nodes a little wider
-    Graph.d3Force('charge').strength(-1050);
-    Graph.d3Force('link').distance(750);
+    Graph.d3Force('charge').strength(-1250);
+    Graph.d3Force('link').distance(650);
     Graph.d3Force('link').strength(link => bridge_nodes.has(link.source) || bridge_nodes.has(link.target) ? .99 : .8);
 
-    // console.log(Graph);
-    setTimeout(() => look_at(g_data.nodes[0]), 8000);
+    // Set the seed node position to 0 and look at the seed node
+    g_data.nodes[0].fx = 0; g_data.nodes[0].fy = 0; g_data.nodes[0].fz =0;
+    setTimeout(() => look_at(g_data.nodes[0]), 1000);
 
     setTimeout(() => fixAllNodes(), 9e3);
 
+    /* End Graph Setup Code */
 
 
     /*
@@ -201,9 +308,9 @@
       rightClickedNode = null;
     }
 
-    /*
-    End context menu code
-     */
+    /* End context menu code */
+
+    /* Begin Helper Functions */
 
     function showConnections(node) {
       // Shows the links between nodes
