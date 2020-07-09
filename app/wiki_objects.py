@@ -4,6 +4,8 @@ import random
 import json
 import wikipedia
 import requests
+import urllib.request
+from PIL import ImageFile
 from bs4 import BeautifulSoup
 from app.models import Wiki
 from app import db
@@ -11,6 +13,7 @@ from urllib.parse import unquote
 
 
 random.seed(5)
+
 
 class Page:
     def title(self):
@@ -40,6 +43,7 @@ class Page:
 
 class WikiPage(Page):
     """Uses Only Wikipedia php API"""
+
     def __init__(self, title):
         self.title_ = title
         self.items_ = []
@@ -74,7 +78,7 @@ class WikiPage(Page):
 
     def is_valid(self, title):
         return ':' not in title and "identifier" not in title and "Library" not in title and \
-                "ISO" not in title and "File" not in title and "Identifier" not in title
+               "ISO" not in title and "File" not in title and "Identifier" not in title
 
     def __len__(self):
         if not self.length_:
@@ -91,7 +95,6 @@ class WikiPage(Page):
             #     random.shuffle(self.images_)
         return [self.images_[0]] if self.images_ else []
 
-
     def items(self, shuffle=False, seen={}):
         """
         :param shuffle: whether to shuffle the result or not
@@ -100,6 +103,9 @@ class WikiPage(Page):
         """
         if not self.items_:
             titles, self.pageimage_ = self.query_api('pageimages|links', self.title())
+            # scrape pageimage if page info not in api
+            if not self.pageimage_:
+                self.pageimage_ = self.scrape_page_image(self.url())
             if not titles:
                 return [], []
             if shuffle:
@@ -131,6 +137,16 @@ class WikiPage(Page):
         return self.color_
 
     @staticmethod
+    def scrape_page_image(url):
+        page_content = requests.get(url).content
+        soup = BeautifulSoup(page_content, 'lxml')
+        metadata = get_metadata(soup)
+        if metadata['og:image']:
+            size, dim = getsizes(metadata['og:image'])
+            return {'source': metadata['og:image'], 'width': dim[0], 'height': dim[1]}
+        return None
+
+    @staticmethod
     def rgb_to_hex(rgb):
         return '#%02x%02x%02x' % rgb
 
@@ -140,7 +156,7 @@ class WikiPage(Page):
         try:
             query = WikiPage.query_api('prefixsearch', semi_title,
                                        query_param='list', target='prefixsearch', title_key='pssearch')
-        except KeyError: #no results yet
+        except KeyError:  # no results yet
             return []
         return [q['title'] for q in query]
 
@@ -224,10 +240,40 @@ class WikiPage(Page):
             return [], {}
 
 
+def get_metadata(soup, props=("og:image",)):
+    """
+    Scrapes specified properties from <meta ..> tag of the beautiful soup object
+    By default, it returns the title, brief description, and the most relevant image
+    of the webpage
+    """
+    res = {}
+    for prop in props:
+        curr = soup.find("meta", property=prop)
+        res[prop] = curr['content'] if curr and curr.has_attr('content') else None
+    return res
 
+
+
+def getsizes(uri):
+    # get file size *and* image size (None if not known)
+    with urllib.request.urlopen(uri) as file:
+        size = file.headers.get("content-length")
+        if size:
+            size = int(size)
+        p = ImageFile.Parser()
+        while 1:
+            data = file.read(1024)
+            if not data:
+                break
+            p.feed(data)
+            if p.image:
+                return size, p.image.size
+                break
+        return size, (500, 500)
 
 class PyWikiPage(Page):
     """Uses Wikipedia Python Api"""
+
     def __init__(self, title, link_lim=10):
         self.wiki_ = wikipedia.page(title)
         self.title_ = title
@@ -235,7 +281,7 @@ class PyWikiPage(Page):
         self.images_ = None
         self.summary_ = None
         self.url_ = None
-        self.link_lim =  link_lim
+        self.link_lim = link_lim
 
     def title(self):
         return self.title_
@@ -257,12 +303,10 @@ class PyWikiPage(Page):
             if len(links) > self.link_lim:
                 return links
             return links
+
     @staticmethod
     def validate_link(link):
         return ':' not in link
-
-
-
 
 
 class ScrapePage(Page):
@@ -298,7 +342,7 @@ class ScrapePage(Page):
 
     def is_valid_category(self, s):
         return (s != '/wiki/Help:Category' and 'Wikipedia' not in s
-               and not bool(re.match(r'.*\d{4}.*', s)))
+                and not bool(re.match(r'.*\d{4}.*', s)))
 
     def is_valid_page(self, s):
         return s != 'Wikipedia:FAQ/Categorization'
@@ -318,6 +362,7 @@ class ScrapePage(Page):
                     if validator_fn(atag['href']):
                         res.append(self.home_ + atag['href'])
         return res
+
     def sup_categories(self):
         """
         :return: List of Category objects corresponding to super-categories (i, e the category the object is in
@@ -326,7 +371,6 @@ class ScrapePage(Page):
         if not self.sup_categories_:
             url_query = self.links_in_div("mw-normal-catlinks", self.is_valid_category)
             self.sup_categories_ = [ScrapeCategory(u) for u in url_query]
-
 
         return self.sup_categories_
 
@@ -360,8 +404,6 @@ class ScrapePage(Page):
         return []
 
 
-
-
 class ScrapeCategory(ScrapePage):
     def sub_categories(self):
         """
@@ -370,7 +412,7 @@ class ScrapeCategory(ScrapePage):
 
         if not self.sub_categories_:
             self.sub_categories_ = [ScrapeCategory(u) for u in
-                                     self.links_in_div("mw-subcategories", self.is_valid_category)]
+                                    self.links_in_div("mw-subcategories", self.is_valid_category)]
         return self.sub_categories_
 
     def pages(self):
@@ -379,5 +421,5 @@ class ScrapeCategory(ScrapePage):
         """
         if not self.pages_:
             self.pages_ = [ScrapePage(u) for u in
-                            self.links_in_div("mw-pages", self.is_valid_category)]
+                           self.links_in_div("mw-pages", self.is_valid_category)]
         return self.pages_

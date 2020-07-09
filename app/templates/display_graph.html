@@ -74,6 +74,7 @@
 <body>
 
     <div id="3d-graph"></div>
+    <a href="{{ url_for('index') }}" style="position: absolute; top: 5px; left: 5px">Home</a>
     <!-- Trigger/Open The Modal -->
     <button id="myBtn" class="button"> Controls </button>
 
@@ -203,7 +204,7 @@
               sprite.center.set(.5, -.8);
               obj.add(sprite);
 
-              const area_thresh = 18e6;
+              const area_thresh = 30e6;
 
               if (node.pageimage.source && node.pageimage.width * node.pageimage.height < area_thresh) {
                 const imgTexture = new THREE.TextureLoader().load(node.pageimage.source);
