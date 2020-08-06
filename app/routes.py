@@ -9,7 +9,7 @@ from werkzeug.urls import url_parse
 from app.models import User
 from app.graph import *
 from app.wiki_objects import WikiPage
-
+from flask_cors import cross_origin
 options_dict = {"use_il": 0, "use_graph": 1}
 opt = options_dict['use_graph']
 
@@ -75,7 +75,7 @@ def autocomplete():
     titles = WikiPage.prefix_search(semi_title)
     return Response(json.dumps(titles), mimetype='application/json')
 
-@app.route('/load_graph', methods=['Get'])
+@app.route('/load_graph', methods=['Get', 'Post'])
 def load_graph():
     """
     Starts job for generating graph
@@ -92,7 +92,9 @@ def load_graph():
     job.meta['progress'] = 0
     job.save_meta()
     if request.args.get('return_data'):
-        return jsonify({'job_id': job.id})
+        response = jsonify({'job_id': job.id})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
     return render_template('load_graph.html', url=urllib.parse.quote(url), job_id=job.id)
 
 
@@ -148,7 +150,12 @@ def make_graph():
         links = wiki_make_lst_from_seed(seed_link)
         return render_template('display_url_lst.html', links=links[:50])
 
-@app.route('/load') #, methods=['GET'])
+
+@app.route('/tutorial')
+def tutorial():
+    return render_template('tutorial.html')
+
+@app.route('/load')
 def load():
     limit = 30
     seed_link = request.args.get('url')

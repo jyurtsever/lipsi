@@ -395,9 +395,11 @@
                             node, delay);
     }
 
+    const cors_url_ext = '&callback=?';
+
     function loadExtendedGraph(node) {
       // Extends the current graph using node as a seed
-      let load_graph_url = '{{url_for("load_graph")}}';
+      let load_graph_url = '/load_graph';//'{{url_for("load_graph")}}' + cors_url_ext;
       console.log(load_graph_url);
       load_graph_url = load_graph_url.concat('?url=', node.title);
       load_graph_url = load_graph_url.concat('&start_id=', g_data.nodes.length);
@@ -405,7 +407,7 @@
       load_graph_url = load_graph_url.concat('&seed_id=', node.id);
 
       $.getJSON(load_graph_url, function(data) {
-        let status_url = '{{url_for("job_status")}}';
+        let status_url = '/job_status';//'{{url_for("job_status")}}' + cors_url_ext;
         status_url = status_url.concat('?job_id=', data.job_id);
         load_graph_in_backround_then_merge(status_url, node, data.job_id);
 
@@ -421,7 +423,7 @@
               break;
           case "finished":
               console.log("success");
-              let graph_data_url = '{{url_for("make_graph")}}';
+              let graph_data_url = '/make_graph';//'{{url_for("make_graph")}}' + cors_url_ext;
               graph_data_url = graph_data_url.concat('?url=', node.title);
               graph_data_url = graph_data_url.concat('&job_id=', job_id);
               graph_data_url = graph_data_url.concat('&return_data=', '1');
@@ -440,7 +442,7 @@
     }
 
     function merge_graph(graph_data_url, node) {
-      // merges graph data from graph_data_url with current graph usine "node" as the bridge connection
+      // merges graph data from graph_data_url with current graph using "node" as the bridge connection
       $.getJSON(graph_data_url, function (data) {
         createNeighbors(data);
         // setLocationsToNode(data, node);
