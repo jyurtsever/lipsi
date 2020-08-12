@@ -55,10 +55,10 @@
     .button {
       position: absolute;
       height: 30px;
-      width: 200px;
+      width: 170px;
       font-size: 17px;
       top: 5px;
-      right: 5px;
+      left: 365px;
       background-color: rgba(82, 82, 82, 0.84);
       color: rgba(246, 255, 255, 0.92);
     }
@@ -74,9 +74,13 @@
 <body>
 
     <div id="3d-graph"></div>
-    <a href="{{ url_for('index') }}" style="position: absolute; top: 5px; left: 5px">Home</a>
+    <button  class="button" style="position: absolute; top: 5px; left: 5px"
+             onclick="location.href='{{ url_for('index') }}';"> Home</button>
+
+    <button  class="button" style="position: absolute; top: 5px; left: 185px"
+             onclick="location.href='{{ url_for('tutorial') }}';"> Tutorial</button>
     <!-- Trigger/Open The Modal -->
-    <button id="myBtn" class="button"> Controls </button>
+    <button id="myBtn" class="button" > Controls </button>
 
     <!-- The Modal -->
     <div id="myModal" class="modal">
@@ -395,7 +399,7 @@
                             node, delay);
     }
 
-    const cors_url_ext = '&callback=?';
+    // const cors_url_ext = '&callback=?';
 
     function loadExtendedGraph(node) {
       // Extends the current graph using node as a seed
