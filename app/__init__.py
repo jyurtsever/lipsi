@@ -5,6 +5,7 @@ from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
+from flask_sslify import SSLify
 from logging.handlers import SMTPHandler, RotatingFileHandler
 from redis import Redis
 from flask_assets import Bundle, Environment
@@ -12,7 +13,7 @@ from flask_assets import Bundle, Environment
 import rq
 
 app = Flask(__name__)
-
+sslify = SSLify(app)
 
 app.config.from_object(Config)
 db = SQLAlchemy(app)
