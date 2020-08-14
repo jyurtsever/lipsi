@@ -71,7 +71,7 @@ def graph_from_seed(seed_title, start_id=0, seed_id=0, max_count=850):
     Q = [seed_page]
     G.add_node(seed_page)
 
-    # Hard coded thresholds and cutoffs
+    # Hard coded thresholds and cutoffs!
     node_count = [0]
     i, cuttoff = 0, 650
     seen_to_num_nodes_thresh = 0.08
