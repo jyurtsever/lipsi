@@ -55,7 +55,7 @@ def force_g_format(G):
 
 
 
-def graph_from_seed(seed_title, start_id=0, seed_id=0, max_count=850):
+def graph_from_seed(seed_title, start_id=0, seed_id=0, max_count=350):
     """
     :param seed_title: title to start the graphing process
     :return: nx Graph object, the resulting graph of exploration
@@ -73,7 +73,7 @@ def graph_from_seed(seed_title, start_id=0, seed_id=0, max_count=850):
 
     # Hard coded thresholds and cutoffs!
     node_count = [0]
-    i, cuttoff = 0, 650
+    i, cuttoff = 0, 1000
     seen_to_num_nodes_thresh = 0.08
     max_links, max_seen_links = 15, 20
     time_cutoff = 80*1e3 #one minute
@@ -115,6 +115,7 @@ def graph_from_seed(seed_title, start_id=0, seed_id=0, max_count=850):
         except urllib.error.URLError:
             print(f'Error at {node.url()}')
 
+    print(f"max count: {max_count}")
     while node_count[0] < max_count and i < cuttoff:
         new_Q = []
 

@@ -78,7 +78,8 @@ class WikiPage(Page):
 
     def is_valid(self, title):
         return ':' not in title and "identifier" not in title and "Library" not in title and \
-               "ISO" not in title and "File" not in title and "Identifier" not in title
+               "ISO" not in title and "File" not in title and "Identifier" not in title and \
+                "Encyclopedia" not in title and "encyclopedia" not in title
 
     def __len__(self):
         if not self.length_:
