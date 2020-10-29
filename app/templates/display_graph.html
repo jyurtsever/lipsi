@@ -1,86 +1,25 @@
 <head>
-  <style> body { margin: 0; }
-    .vertical-menu {
-        width: 300px; /* Set a width if you like */
-    }
-    .vertical-menu a {
-        background-color: rgba(192, 255, 253, 0.82); /* Grey background color */
-        color: rgba(0, 0, 0, 0.84); /* Black text color */
-        display: block; /* Make the links appear below each other */
-        padding: 12px; /* Add some padding */
-        text-decoration: none; /* Remove underline from links */
-    }
-    .vertical-menu a:hover {
-        background-color: #ccc; /* Dark grey background on mouse-over */
-    }
-     /* The Modal (background) */
-    .modal {
-      display: none; /* Hidden by default */
-      position: fixed; /* Stay in place */
-      z-index: 1; /* Sit on top */
-      padding-top: 100px; /* Location of the box */
-      left: 0;
-      top: 0;
-      width: 100%; /* Full width */
-      height: 100%; /* Full height */
-      overflow: auto; /* Enable scroll if needed */
-      color: rgba(246, 255, 255, 0.92);
-      background-color: rgb(0,0,0); /* Fallback color */
-      background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-    }
+<!--    <style> body { margin: 0; }-->
+<!--    -->
+<!--    </style>-->
+    <link rel="stylesheet" href="{{url_for('static', filename='css/base.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/graph_objects.css')}}">
+    <script src="//unpkg.com/three"></script>
+    <script src="//unpkg.com/three-spritetext"></script>
+    <script src="//unpkg.com/3d-force-graph"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    </head>
 
-    /* Modal Content */
-    .modal-content {
-      background-color: rgba(129, 253, 248, 0.36);
-      margin: auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 30%;
-    }
-
-    /* The Close Button */
-    .close {
-      color: #aaaaaa;
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-    }
-
-    .close:hover,
-    .close:focus {
-      color: #000;
-      text-decoration: none;
-      cursor: pointer;
-    }
-    .button {
-      position: absolute;
-      height: 30px;
-      width: 170px;
-      font-size: 17px;
-      top: 5px;
-      left: 365px;
-      background-color: rgba(82, 82, 82, 0.84);
-      color: rgba(246, 255, 255, 0.92);
-    }
-  </style>
-
-  <script src="//unpkg.com/three"></script>
-  <script src="//unpkg.com/three-spritetext"></script>
-  <script src="//unpkg.com/3d-force-graph"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
-  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-</head>
-
-<body>
-
-    <div id="3d-graph"></div>
-    <button  class="button" style="position: absolute; top: 5px; left: 5px"
-             onclick="location.href='{{ url_for('index') }}';"> Home</button>
-
-    <button  class="button" style="position: absolute; top: 5px; left: 185px"
-             onclick="location.href='{{ url_for('tutorial') }}';"> Tutorial</button>
-    <!-- Trigger/Open The Modal -->
-    <button id="myBtn" class="button" > Controls </button>
+<body onresize="resizeGraph()">
+    <div class="topnav" id="top_menu">
+            <a class="active" href='{{ url_for('index') }}'> Home</a>
+            <a href='{{ url_for('tutorial') }}'> Tutorial</a>
+            <a id="myBtn" > Controls</a>
+    </div>
+    <div id="3d-graph" >
+    </div>
+    <div id="graph-node-label"></div>
 
     <!-- The Modal -->
     <div id="myModal" class="modal">
@@ -119,6 +58,8 @@
 
     // Get the <span> element that closes the modal
     var span = document.getElementsByClassName("close")[0];
+
+    const MENU_HEIGHT = document.getElementById("top_menu").offsetHeight;
 
     // When the user clicks the button, open the modal
     btn.onclick = function() {
@@ -221,7 +162,8 @@
                 obj.add(sprite);
               }
               return obj})
-        .nodeLabel(node => label(node))
+        .nodeLabel(node => null)
+        .onNodeHover(node => label(node))
         .onNodeRightClick(node => {
           displayMenu(node);
         })
@@ -260,6 +202,9 @@
             updateHighlight();
           }
         });
+    // Reset height to fit top menu
+    resizeGraph();
+    Graph.height($(window).height() - 49);
 
 
     // Spread nodes a little wider
@@ -316,6 +261,16 @@
     /* End context menu code */
 
     /* Begin Helper Functions */
+    function resizeGraph() {
+    // // Resizes the graph if the page gets resized
+    //     if (Graph) {
+    //         var height = $(window).height();
+    //         var width = $(window).width();
+    //
+    //         Graph.width(width);
+    //         Graph.height(height - MENU_HEIGHT);
+    //     }
+    }
 
     function showConnections(node) {
       // Shows the links between nodes
@@ -380,11 +335,37 @@
 
     function label(node) {
       // display iframe previewing article as label
-          var w = 900;
-          var h = 700;
-          var url = home_url + node.title;
-          return '<iframe style="visibility:hidden;" onload="this.style.visibility = \'visible\';" src="' +
-                  url + '" width="' + w + '" height="' + h + '">';
+      var label_element = document.getElementById("graph-node-label");
+      if (node) {
+          const max_width = 900;
+          const max_height = 700;
+          var {x, y} = Graph.graph2ScreenCoords(node.x, node.y, node.z);
+          x += 30;
+          y += 40;
+          var screen_width = $(window).width();
+          var screen_height = $(window).height();
+          if (y > screen_height - max_height/2) {
+              y -= max_height;
+          }
+
+          if (x > screen_width - max_width/2) {
+              x -= max_width;
+          }
+          var w = x > screen_width - max_width ? screen_width - x - 10: max_width;
+          var h = y > screen_height - max_height ? screen_height - y - 10: max_height;
+          var url = 'https://en.m.wikipedia.org/wiki/' + node.title;
+          label_element.innerHTML = '<iframe style="visibility:hidden;" onload="this.style.visibility = \'visible\';" src="' +
+                  url + '" width="' + w + '" height="' + h + '" >';
+          label_element.style.display = "block";
+          label_element.style.position = "absolute";
+          label_element.style.top = y;
+          label_element.style.left = x;
+
+          // return '<iframe style="visibility:hidden;" onload="this.style.visibility = \'visible\';" src="' +
+          //         url + '" width="' + w + '" height="' + h + '" >';
+      } else {
+          label_element.style.display = "none";
+      }
     }
 
     function look_at(node) {

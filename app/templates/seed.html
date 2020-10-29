@@ -1,7 +1,10 @@
-<!DOCTYPE html>
+<!--<!DOCTYPE html>-->
 <html lang="en">
 
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
@@ -12,15 +15,21 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.0/animate.min.css">
 
         <link   rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+        <link rel="stylesheet" href="{{url_for('static', filename='css/base.css')}}">
         <script type="text/javascript" src="https://code.jquery.com/jquery-latest.js"></script>
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
 
     </head>
     <body>
-        <div>
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('tutorial') }}">Tutorial</a>
-        </div>
+<!--        <div>-->
+<!--            <a href="{{ url_for('index') }}">Home</a>-->
+<!--            <a href="{{ url_for('tutorial') }}">Tutorial</a>-->
+<!--        </div>-->
+    <div class="topnav">
+            <a class="active" href='{{ url_for('index') }}'> Home</a>
+            <a href='{{ url_for('tutorial') }}'> Tutorial</a>
+            <a id="myBtn" > Controls</a>
+    </div>
         <div align="center">
             <h1>Graph Surfing</h1>
             <form action="" method="post">
