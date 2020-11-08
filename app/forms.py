@@ -2,7 +2,22 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, URL
 from app.models import User
-from urllib.parse import urlparse
+from app.wiki_objects import WikiPage
+import httplib2
+import urllib.parse
+
+def check_url_exists(url_string):
+    h = httplib2.Http()
+    resp = h.request(url_string, 'HEAD')
+    return int(resp[0]['status']) < 400
+
+def validate_wikipedia_article_name(form, field):
+    if not check_url_exists('https://en.wikipedia.org/wiki/' + urllib.parse.quote(field.data)):
+        titles = WikiPage.prefix_search(field.data)
+        if titles:
+            raise ValidationError(f"Invalid Wikipedia article '{field.data}', did you mean '{titles[0]}'?")
+        else:
+            raise ValidationError(f"Invalid Wikipedia article '{field.data}'")
 
 
 class LoginForm(FlaskForm):
@@ -33,9 +48,7 @@ class WikiSeedLinkForm(FlaskForm):
     """
     Form for seed link to start the graph
     """
-    seed = StringField('Wikipedia Seed Link', id='seed', validators=[DataRequired()])
+    seed = StringField('Wikipedia Seed Link', id='seed', validators=[DataRequired(), validate_wikipedia_article_name])
     submit = SubmitField('Run!')
-
-
 
 

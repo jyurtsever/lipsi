@@ -27,14 +27,15 @@
 <!--        </div>-->
     <div class="topnav">
             <a class="active" href='{{ url_for('index') }}'> Home</a>
-            <a href='{{ url_for('tutorial') }}'> Tutorial</a>
-            <a id="myBtn" > Controls</a>
+            <a href='https://www.youtube.com/watch?v=XcHnOtKObT8' target="_blank"> Tutorial</a>
     </div>
         <div align="center">
-            <h1>Graph Surfing</h1>
+            <br>
+            <img src="{{url_for('static', filename='images/graph_surfing_logo4.png')}}" height="25%"  align="middle">
+            <h1 style="color: blue; font-size: 600%; font-family: Verdana">Graph Surfing</h1>
             <form action="" method="post">
                 {{ form.hidden_tag() }}
-                <br>
+<!--                <br>-->
                 <p>
                     Search for a wikipedia article in the box below, then click Run! <br>
                     <div class="ui-widget">

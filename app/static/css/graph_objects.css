@@ -1,0 +1,101 @@
+.vertical-menu {
+    width: 300px; /* Set a width if you like */
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    display: none;
+}
+.vertical-menu a {
+    background-color: rgba(192, 255, 253, 0.82); /* Grey background color */
+    color: rgba(0, 0, 0, 0.84); /* Black text color */
+    display: block; /* Make the links appear below each other */
+    padding: 12px; /* Add some padding */
+    text-decoration: none; /* Remove underline from links */
+}
+.vertical-menu a:hover {
+    background-color: #ccc; /* Dark grey background on mouse-over */
+    cursor: pointer;
+}
+ /* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  color: rgba(246, 255, 255, 0.92);
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+  background-color: rgba(78, 253, 248, 0.46);
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 30%;
+}
+
+/* The Close Button */
+.close {
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+.button {
+  position: absolute;
+  height: 30px;
+  width: 170px;
+  font-size: 17px;
+  top: 5px;
+  left: 365px;
+  background-color: rgba(82, 82, 82, 0.84);
+  color: rgba(246, 255, 255, 0.92);
+}
+
+.ldBar-label {
+    color: #09f;
+    font-family: 'varela round';
+    font-size: 1em;
+    font-weight: 900;
+    width: 10%;
+}
+
+.ldBar path.mainline {
+    stroke-width: 7;
+    stroke: #09f;
+    stroke-linecap: round;
+}
+
+.ldBar path.baseline {
+    stroke-width: 10;
+    stroke: #f1f2f3;
+    stroke-linecap: round;
+    filter:url(#custom-shadow);
+}
+
+
+#myBtn {
+    cursor: pointer;
+}
+
+#tutorialBtn {
+    cursor: pointer;
+}
+
+*:focus{
+    outline: none;
+}
