@@ -2,20 +2,52 @@
     <link rel="stylesheet" href="{{url_for('static', filename='css/base.css')}}">
     <link rel="stylesheet" href="{{url_for('static', filename='css/graph_objects.css')}}">
     <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='loading-bar.css')}}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="//unpkg.com/three"></script>
     <script src="//unpkg.com/three-spritetext"></script>
     <script src="//unpkg.com/3d-force-graph"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <link href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" rel="Stylesheet">
+    <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js" ></script>
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <script>
+        function validateTitle() {
+            var title = (encodeURI(document.getElementById("search_bar").value));
+            var check_title_url = '{{url_for("check_title")}}' + '?title=' + title;
+            var res = false;
+            $.ajax({
+                url: check_title_url,
+                async: false,
+                dataType: 'json',
+                success: function (data) {
+                    if (data) {
+                        alert(data);
+                        res = false;
+                    } else {
+                        res = true;
+                    }
+                }
+            });
+            return res;
+        }
+    </script>
 </head>
-
 <body onresize="resizeGraph()">
     <script type="text/javascript" src="{{url_for('static', filename='loading-bar.js')}}"></script>
     <div class="topnav" id="top_menu">
         <a class="active" href='{{ url_for('index') }}'> Home</a>
 <!--            <a href='{{ url_for('tutorial') }}'> Tutorial</a>-->
+        <a href='{{ url_for('about') }}'> About </a>
         <a id="tutorialBtn"> Tutorial</a>
+        <a href='{{ url_for('examples') }}'> Examples </a>
+        <a href='{{ url_for('contact') }}'> Contact </a>
         <a id="myBtn"> Controls</a>
+        <div class="search-container">
+            <form action="/load_graph" onsubmit="return validateTitle()" >
+                  <input type="text" placeholder="Search for an article to generate another network.." name="url" required id="search_bar"  >
+                  <button type="submit"><i class="fa fa-search"></i></button>
+            </form>
+        </div>
     </div>
     <div id="3d-graph" >
     </div>
@@ -40,14 +72,18 @@
       <!-- Modal content -->
       <div class="modal-content">
         <span id="controls-close" class="close">&times;</span>
-        <div style="font-size: 30px; font-family: Helvetica,serif; margin: auto;">
-            <p> WASD: move </p>
-            <p> R | F: up | down </p>
-            <p> Q | E: roll</p>
-            <p> up key | down key: pitch </p>
-            <p> left key | right key: yaw </p>
-            <p> left click: navigate to node </p>
-            <p> right click: open node context menu</p>
+        <div style="font-size: 25px; margin: auto; width: fit-content">
+            <p> <b>WASD </b>: planar motion </p>
+            <p> <b>R | F </b>: up | down </p>
+            <p> <b>Q | E </b>: roll</p>
+            <p> <b>up key | down key </b>: pitch </p>
+            <p> <b>left key | right key </b>: yaw </p>
+            <p> <b>hover over node </b>: previews the Wikipedia article corresponding to the node</p>
+            <p> <b>node left click </b>: navigate to node </p>
+            <p> <b>node right click&#8594Show Connected Articles</b>: shows the connections to an article</p>
+            <p> <b>node right click&#8594Expand Network Using Article</b>: adds more articles to the network
+                using the right clicked article as a starting point </p>
+            <p> <b>node right click&#8594Open Article in New Tab </b>: opens the right clicked article in a new tab </p>
         </div>
       </div>
     </div>
@@ -66,8 +102,28 @@
       <a id="open"> Open Article in New Tab (ctrl+clk)</a>
       <a id="closeMenu"> Close Menu </a>
     </div>
+    <script>
+        $(function() {
+            var cache = {};
+            $('#search_bar').autocomplete({
+                minLength: 2,
+                source: function( request, response ) {
+                var term = request.term;
+                if ( term in cache ) {
+                  response( cache[ term ] );
+                  return;
+                }
 
+                $.getJSON('{{ url_for("autocomplete") }}', request, function( data, status, xhr ) {
+                  cache[ term ] = data;
+                  response( data );
+                });
+              }
+            });
+        });
+    </script>
   <script>
+    const home_url = 'https://en.wikipedia.org/wiki/';
     /* This part of the code is devoted to displaying the buttons */
     function create_button(modal_name, btn_name, span_name) {
         // Get the modal
@@ -118,7 +174,7 @@
 
 
     // Initialize Global Variables
-    const home_url = 'https://en.wikipedia.org/wiki/';
+
 
     const highlightNodes_from_node = new Set();
     const highlightLinks_from_node = new Set();
@@ -302,7 +358,6 @@
         subroutine();
         setTimeout(subroutine, 1000);
         setTimeout(subroutine, 5000);
-
     }
 
     function showConnections(node) {

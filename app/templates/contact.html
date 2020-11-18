@@ -1,0 +1,39 @@
+<!--<!DOCTYPE html>-->
+<html lang="en">
+
+    <head>
+        <link rel="stylesheet" href="{{url_for('static', filename='css/base.css')}}">
+    </head>
+    <body>
+    <div class="topnav">
+        <a class="active" href='{{ url_for('index') }}'> Home</a>
+        <a href='{{ url_for('about') }}'> About </a>
+        <a href='https://www.youtube.com/watch?v=XcHnOtKObT8' target="_blank"> Tutorial</a>
+        <a href='{{ url_for('examples') }}'> Examples </a>
+        <a href='{{ url_for('contact') }}'> Contact </a>
+    </div>
+    <div align="center">
+        <br>
+        <table border="0" cellpadding="50" cellspacing="0" width="60%">
+        <tbody><tr><td align="left" width="60%">
+            <h1> Feedback? Comments? Ideas?</h1><br>
+            <br>
+            Feel free to connect with me if you have any feedback or ideas to improve this project! <br> <br>
+            Email: joshua.yurtsever@berkeley.edu <br> <br>
+            <a href="https://www.linkedin.com/in/joshua-yurtsever/"> My LinkedIn</a> <br> <br> <br>
+            <b>
+                About Me
+
+            </b>
+            <p>
+                I graduated from UC Berkeley with a bachelors degree in computer science last May and
+                currently work as a software engineer at Google in security and privacy. In my spare time
+                I like to practice piano, ride my bike, read books, and code up pet projects (like this one).
+            </p></td>
+        <td valign="top" align="left">
+<!--        <a href="img/Efros__photo_Peter_Badge.jpg">-->
+        <img src="{{url_for('static', filename='images/jyurtsever_photo_crop.jpg')}}"  border="0" height="350"></a>
+            </td>
+        </tr></tbody></table>
+    </div>
+    </body>

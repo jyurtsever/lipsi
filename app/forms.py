@@ -11,14 +11,20 @@ def check_url_exists(url_string):
     resp = h.request(url_string, 'HEAD')
     return int(resp[0]['status']) < 400
 
-def validate_wikipedia_article_name(form, field):
-    if not check_url_exists('https://en.wikipedia.org/wiki/' + urllib.parse.quote(field.data)):
-        titles = WikiPage.prefix_search(field.data)
+def check_title_valid(title):
+    if not check_url_exists('https://en.wikipedia.org/wiki/' + urllib.parse.quote(title)):
+        titles = WikiPage.prefix_search(title)
         if titles:
-            raise ValidationError(f"Invalid Wikipedia article '{field.data}', did you mean '{titles[0]}'?")
+            return f"Invalid Wikipedia article '{title}', did you mean '{titles[0]}'?"
         else:
-            raise ValidationError(f"Invalid Wikipedia article '{field.data}'")
+            return f"Invalid Wikipedia article '{title}'"
+    return ""
 
+
+def validate_wikipedia_article_name(form, field):
+    res = check_title_valid(field.data)
+    if res:
+        raise ValidationError(res)
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])

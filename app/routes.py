@@ -1,7 +1,7 @@
 import json
 import urllib.parse
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, WikiSeedLinkForm
+from app.forms import LoginForm, RegistrationForm, WikiSeedLinkForm, check_title_valid
 from flask import render_template, flash, redirect, url_for, make_response, jsonify, current_app, Response
 from flask_login import current_user, login_user, login_required, logout_user
 from flask import request
@@ -61,7 +61,7 @@ def register():
 def prompt_seed():
     """
     Todo:
-    prompt user to enter link of their choice
+    prompt useto enter link of their choice
     :return:
     """
     form = WikiSeedLinkForm()
@@ -74,6 +74,13 @@ def autocomplete():
     semi_title = request.args.get('term')
     titles = WikiPage.prefix_search(semi_title)
     return Response(json.dumps(titles), mimetype='application/json')
+
+@app.route('/check_title',methods=['GET'])
+def check_title():
+    title = request.args.get('title')
+    return Response(json.dumps(check_title_valid(title)), mimetype='application/json')
+
+
 
 @app.route('/load_graph', methods=['Get', 'Post'])
 def load_graph():
@@ -154,6 +161,30 @@ def make_graph():
 @app.route('/tutorial')
 def tutorial():
     return render_template('tutorial.html')
+
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
+
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+
+@app.route('/examples')
+def examples():
+    examples = [{'name': 'Butterfly', 'img_url': url_for('static', filename='images/butterfly.png')},
+                {'name': 'Vincent van Gogh', 'img_url': url_for('static', filename='images/van_gogh.png')},
+                {'name': 'Supernova', 'img_url': url_for('static', filename='images/supernova.png')},
+                {'name': 'Red velvet cake', 'img_url': url_for('static', filename='images/velvet_cake.png')},
+                {'name': 'Iron Man', 'img_url': url_for('static', filename='images/iron_man.png')},
+                {'name': 'Klein bottle', 'img_url': url_for('static', filename='images/klein_bottle.png')},
+                ]
+    print(examples[0]['img_url'])
+    return render_template('examples.html', examples=examples)
+
 
 @app.route('/load')
 def load():

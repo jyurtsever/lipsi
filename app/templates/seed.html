@@ -21,13 +21,12 @@
 
     </head>
     <body>
-<!--        <div>-->
-<!--            <a href="{{ url_for('index') }}">Home</a>-->
-<!--            <a href="{{ url_for('tutorial') }}">Tutorial</a>-->
-<!--        </div>-->
     <div class="topnav">
-            <a class="active" href='{{ url_for('index') }}'> Home</a>
-            <a href='https://www.youtube.com/watch?v=XcHnOtKObT8' target="_blank"> Tutorial</a>
+        <a class="active" href='{{ url_for('index') }}'> Home</a>
+        w<a href='{{ url_for('about') }}'> About </a>
+        <a href='https://www.youtube.com/watch?v=XcHnOtKObT8' target="_blank"> Tutorial</a>
+        <a href='{{ url_for('examples') }}'> Examples </a>
+        <a href='{{ url_for('contact') }}'> Contact </a>
     </div>
         <div align="center">
             <br>
@@ -35,14 +34,12 @@
             <h1 style="color: blue; font-size: 600%; font-family: Verdana">Graph Surfing</h1>
             <form action="" method="post">
                 {{ form.hidden_tag() }}
-<!--                <br>-->
                 <p>
                     Search for a wikipedia article in the box below, then click Run! <br>
                     <div class="ui-widget">
-<!--                        <label for="seed"> </label>-->
                         {{ form.seed(size=32) }} {{ form.submit() }} <br>
                         {% for error in form.seed.errors %}
-                        <span style="color: red;">[{{ error }}]</span>
+                        <span style="color: red;">{{ error }}</span>
                         {% endfor %}
                     </div>
                 </p>
