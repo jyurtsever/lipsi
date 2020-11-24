@@ -5,6 +5,7 @@ import json
 import wikipedia
 import requests
 import urllib.request
+import pycountry
 from PIL import ImageFile
 from bs4 import BeautifulSoup
 from app.models import Wiki
@@ -13,7 +14,7 @@ from urllib.parse import unquote
 
 
 random.seed(5)
-
+PYCOUNTRY_SUBDIVISIONS = set([sub.name for sub in pycountry.subdivisions])
 
 class Page:
     def title(self):
@@ -79,7 +80,9 @@ class WikiPage(Page):
     def is_valid(self, title):
         return ':' not in title and "identifier" not in title and "Library" not in title and \
                "ISO" not in title and "File" not in title and "Identifier" not in title and \
-                "Encyclopedia" not in title and "encyclopedia" not in title and "Wikidata" not in title
+                "Encyclopedia" not in title and "encyclopedia" not in title and "Wikidata" not in title and \
+               "List " not in title and not pycountry.countries.get(name=title) and \
+               not pycountry.historic_countries.get(name=title) and title not in PYCOUNTRY_SUBDIVISIONS
 
     def __len__(self):
         if not self.length_:

@@ -25,6 +25,7 @@ networkx==2.4
 numpy==1.18.2
 orderedmultidict==1.0.1
 Pillow==7.2.0
+pycountry==20.7.3
 python-dateutil==2.8.1
 python-editor==1.0.4
 pywiki==0.3.4
