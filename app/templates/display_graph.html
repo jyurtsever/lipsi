@@ -211,7 +211,7 @@
     Below we define the graph using the https://github.com/vasturiano/3d-force-graph,
     a library created by Vasco Asturiano
     */
-    const Graph = ForceGraph3D({controlType: 'fly'})
+    const Graph = ForceGraph3D({controlType: 'orbit'})
       (elem)
         .graphData(g_data)
         .enableNodeDrag(false)
@@ -223,6 +223,7 @@
         .linkDirectionalParticles(link => highlightLinks_from_link.has(link) || highlightLinks_from_node.has(link) ? 1.5 : 0)
         .linkDirectionalParticleWidth(4)
         .nodeThreeObjectExtend(true)
+        .enableNavigationControls(true)
         .nodeThreeObject(node => {
           // load image and node sphere
               const obj = new THREE.Mesh();
