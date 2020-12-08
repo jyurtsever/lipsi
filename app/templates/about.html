@@ -9,20 +9,74 @@
     <div class="topnav">
         <a class="active" href='{{ url_for('index') }}'> Home</a>
         <a href='{{ url_for('about') }}'> About </a>
-        <a href='https://www.youtube.com/watch?v=XcHnOtKObT8' target="_blank"> Tutorial</a>
+<!--        <a href='https://www.youtube.com/watch?v=XcHnOtKObT8' target="_blank"> Tutorial</a>-->
         <a href='{{ url_for('examples') }}'> Examples </a>
         <a href='{{ url_for('contact') }}'> Contact </a>
     </div>
-    <div align="center">
+    <div style="width: 900px; margin-left: auto; margin-right: auto; font-size: larger">
         <br>
-        <table border="0" cellpadding="50" cellspacing="0" width="70%">
-        <tbody><tr><td align="left" width="50%">
             <h1> What is Graphsurfing? </h1><br>
             <br>
             Fundementally, Graphsurfing is a Wikipedia visualization tool. You can search up your favorite Wikipedia
             article and move around the neighborhood of articles related to it in 3D space. Each article in the resulting
             network of Wikipedia articlesis displayed as a node. Click Examples to look at example networks or Home to generate
             a network starting from a Wikipedia article of your choosing! <br> <br> <br>
+            <h2>
+                Controls
+            </h2>
+<!--            <p> <b>WASD </b>: planar motion </p>-->
+<!--            <p> <b>R | F </b>: up | down </p>-->
+<!--            <p> <b>Q | E </b>: roll</p>-->
+            <p> <b>left click </b>: rotate</p>
+            <p> <b>right click </b>: pan</p>
+            <p> <b>scroll </b>: zoom</p>
+
+<!--            <p> <b>up key | down key </b>: slow pan  </p>-->
+<!--            <p> <b>left key | right key </b>: slow pan </p>-->
+            <p> <b>hover over node </b>: previews the Wikipedia article corresponding to the node</p>
+            <p> <b>node left click </b>: navigate to node and center rotation axis around node</p>
+            <p> <b>node right click&#8594Show Connected Articles</b>: shows the connections to an article</p>
+            <p> <b>node right click&#8594Expand Network Using Article</b>: adds more articles to the network
+                using the right clicked article as a starting point </p>
+            <p> <b>node right click&#8594Open Article in New Tab </b>: opens the right clicked article in a new tab </p>
+            <br> <br>
+            <h2>
+                Demonstration
+            </h2>
+            <div class="card" style="width: 900px">
+                <div class="optional-header" align="left">
+                            <div class="primary-title">
+                                <div class="title"> Rotate Pan Zoom</div>
+                            </div>
+                        </div>
+                        <div class="media">
+                            <img src="{{url_for('static', filename='images/graphsurfing_rotate_pan_zoom.gif')}}"width="900">
+                        </div>
+                <div class="primary-text"> <br> </div>
+            </div>
+            <div class="card" style="width: 900px">
+                <div class="optional-header" align="left">
+                            <div class="primary-title">
+                                <div class="title"> Hover and Navigation</div>
+                            </div>
+                        </div>
+                        <div class="media">
+                            <img src="{{url_for('static', filename='images/graphsurfing_hover_node_left.gif')}}"width="900">
+                        </div>
+                <div class="primary-text"> <br> </div>
+            </div>
+            <div class="card" style="width: 900px">
+                <div class="optional-header" align="left">
+                            <div class="primary-title">
+                                <div class="title"> Show Connected Articles and Expand Network</div>
+                            </div>
+                        </div>
+                        <div class="media">
+                            <img src="{{url_for('static', filename='images/graphsurfing_show_expand_new_tab.gif')}}"width="900">
+                        </div>
+                <div class="primary-text"> <br> </div>
+            </div>
+            <br> <br>
             <h2>
                 More Details
 
@@ -39,45 +93,5 @@
                 <b> Expand Network Using Article</b>.
             </p>
             <br> <br>
-            <h2>
-                Controls
-            </h2>
-            <p> <b>WASD </b>: planar motion </p>
-            <p> <b>R | F </b>: up | down </p>
-            <p> <b>Q | E </b>: roll</p>
-            <p> <b>up key | down key </b>: pitch </p>
-            <p> <b>left key | right key </b>: yaw </p>
-            <p> <b>hover over node </b>: previews the Wikipedia article corresponding to the node</p>
-            <p> <b>node left click </b>: navigate to node </p>
-            <p> <b>node right click&#8594Show Connected Articles</b>: shows the connections to an article</p>
-            <p> <b>node right click&#8594Expand Network Using Article</b>: adds more articles to the network
-                using the right clicked article as a starting point </p>
-            <p> <b>node right click&#8594Open Article in New Tab </b>: opens the right clicked article in a new tab </p>
-            </td>
-        <td valign="top" align="left">
-            <div class="card" style="width: 600px">
-                <div class="optional-header" align="left">
-                            <div class="primary-title">
-                                <div class="title">
-                                    No Connections Displayed
-                                </div>
-                            </div>
-                        </div>
-                        <div class="media"> <img src="{{url_for('static', filename='images/no_edge_example.png')}}"width="600"> </div>
-                <div class="primary-text"> <br> </div>
-            </div>
-            <div class="card" style="width: 600px">
-                <div class="optional-header" align="left">
-                            <div class="primary-title">
-                                <div class="title">
-                                    Connections to Cake Displayed
-                                </div>
-                            </div>
-                        </div>
-                        <div class="media"> <img src="{{url_for('static', filename='images/edge_example.png')}}"width="600"> </div>
-                <div class="primary-text"> <br> </div>
-            </div>
-            </td>
-        </tr></tbody></table>
     </div>
     </body>

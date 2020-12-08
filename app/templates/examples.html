@@ -8,13 +8,13 @@
 <div class="topnav">
     <a class="active" href='{{ url_for('index') }}'> Home</a>
     <a href='{{ url_for('about') }}'> About </a>
-    <a href='https://www.youtube.com/watch?v=XcHnOtKObT8' target="_blank"> Tutorial</a>
+<!--    <a href='https://www.youtube.com/watch?v=XcHnOtKObT8' target="_blank"> Tutorial</a>-->
     <a href='{{ url_for('examples') }}'> Examples </a>
     <a href='{{ url_for('contact') }}'> Contact </a>
 </div>
 <div align="center" style="background-image: url('{{url_for('static', filename='images/background.png')}}')">
     <h1> Examples </h1>
-    Click on an example to surf it
+    Click on an example to "surf" it
     <div>
         {% for example in examples %}
             <a href={{url_for('load_graph', url=example.name)}} style="text-decoration: none">
