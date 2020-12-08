@@ -1,4 +1,13 @@
 <head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXD0LMP5H7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-VXD0LMP5H7');
+    </script>
     <link rel="stylesheet" href="{{url_for('static', filename='css/base.css')}}">
     <link rel="stylesheet" href="{{url_for('static', filename='css/graph_objects.css')}}">
     <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='loading-bar.css')}}"/>
@@ -57,30 +66,12 @@
     <div id="graph-node-label" ></div>
 
 
-    <!-- Tutorial Modal -->
-<!--    <div id="tutorialModal" class="modal">-->
-<!--      &lt;!&ndash; Modal content &ndash;&gt;-->
-<!--      <div class="modal-content" style="width: 50%; height: 50%" >-->
-<!--        <span id="tutorial-close" class="close">&times;</span>-->
-<!--        <div >-->
-<!--            <iframe style="width: 95%; height: 95%;  position: relative; left: 30px; top: 20px"-->
-<!--            src="https://www.youtube.com/embed/XcHnOtKObT8">-->
-<!--            </iframe>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </div>-->
-
     <!-- The Modal -->
     <div id="myModal" class="modal">
       <!-- Modal content -->
       <div class="modal-content">
         <span id="controls-close" class="close">&times;</span>
         <div style="font-size: 25px; margin: auto; width: fit-content">
-<!--            <p> <b>WASD </b>: planar motion </p>-->
-<!--            <p> <b>R | F </b>: up | down </p>-->
-<!--            <p> <b>Q | E </b>: roll</p>-->
-<!--            <p> <b>up key | down key </b>: pitch </p>-->
-<!--            <p> <b>left key | right key </b>: yaw </p>-->
             <p> <b>left click </b>: rotate</p>
             <p> <b>right click </b>: pan</p>
             <p> <b>scroll </b>: zoom</p>

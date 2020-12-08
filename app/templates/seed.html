@@ -2,6 +2,15 @@
 <html lang="en">
 
     <head>
+         <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXD0LMP5H7"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-VXD0LMP5H7');
+        </script>
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
 
@@ -23,7 +32,7 @@
     <body>
     <div class="topnav">
         <a class="active" href='{{ url_for('index') }}'> Home</a>
-        w<a href='{{ url_for('about') }}'> About </a>
+        <a href='{{ url_for('about') }}'> About </a>
 <!--        <a href='https://www.youtube.com/watch?v=XcHnOtKObT8' target="_blank"> Tutorial</a>-->
         <a href='{{ url_for('examples') }}'> Examples </a>
         <a href='{{ url_for('contact') }}'> Contact </a>

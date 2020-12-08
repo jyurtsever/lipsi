@@ -66,7 +66,7 @@ def graph_from_seed(seed_title, start_id=0, seed_id=0, max_count=350):
 
     G = nx.Graph()
     seed_page = WikiPage(seed_title)
-    seen = {seed_page.title(): seed_page}
+    seen = {seed_page.url(): seed_page}
 
     Q = [seed_page]
     G.add_node(seed_page)
@@ -96,8 +96,7 @@ def graph_from_seed(seed_title, start_id=0, seed_id=0, max_count=350):
             num_nodes = G.number_of_nodes()
 
 
-            if num_nodes == 1 or len(titles_already_in_G)/num_nodes > seen_to_num_nodes_thresh:
-
+            if num_nodes <= 6 or len(titles_already_in_G)/num_nodes > seen_to_num_nodes_thresh:
                 for j, item in enumerate(items):
                     if j > max_links:
                         break
